@@ -61,6 +61,7 @@ public class HeatMapLoadActivity extends AppCompatActivity {
                 HeatMap heatMap = heatMaps.get(position);
                 //Toast.makeText(getApplicationContext(), "Touched ", Toast.LENGTH_SHORT).show();
                 Intent intent = new Intent(HeatMapLoadActivity.this, HeatMapActivity.class);
+                intent.putExtra("load", true);
                 startActivity(intent);
             }
         });

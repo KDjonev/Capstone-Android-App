@@ -137,7 +137,7 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
 
     int circle_radius = 150;
 
-
+    boolean isLoading;
 
     double [] numbers = {1.0, 0.9, 0.8, 0.8, 0.5, 0.4, 0.2, 0.2, 0.2};
 
@@ -267,6 +267,11 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
                 fab_general_menu.animate().translationY(0).setInterpolator(new LinearInterpolator()).start();
             }
         });
+
+
+        // loading a heat map case
+        isLoading = getIntent().getBooleanExtra("load", false);
+
     }
 
     @Override
@@ -329,6 +334,8 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
         mMap = googleMap;
         mMap.getUiSettings().setCompassEnabled(false);
         mMap.getUiSettings().setMapToolbarEnabled(false);
+
+
     }
 
     @Override
@@ -412,7 +419,12 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(lat, lon), 20.8f));
         // marker = mMap.addMarker(new MarkerOptions().position(new LatLng(lat, lon)).title("My location").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_man_location)));
 
-        //addHeatMap();
+        // loading a heat map case
+        if (isLoading) {
+            Log.d("LOAD HEAT MAP", "loading a heat map condition, displying now...");
+            addHeatMap();
+            fab_general_menu.setVisibility(View.INVISIBLE);
+        }
 
 
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
@@ -494,6 +506,8 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
     }
 
     private void addHeatMap() {
+
+        Log.d("ADDED HEAT MAP", "addHeatMap called!");
         list = new ArrayList<>();
         list.add(new WeightedLatLng(new LatLng(34.409400564638496, -119.86459124833344), 1.0));
         list.add(new WeightedLatLng(new LatLng(34.409395585662374, -119.86453995108603), 0.8));
@@ -520,6 +534,11 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
         provider.setRadius(100);
         overlay = mMap.addTileOverlay(new TileOverlayOptions().tileProvider(provider));
 
+        double load_lat, load_lon;
+        load_lat = 34.40935851994197;
+        load_lon = -119.86458420753479;
+
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(load_lat, load_lon), 20.8f));
     }
 
     private class SaveHeatMapAsync extends AsyncTask<String, String, String> {
@@ -604,7 +623,7 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
             int overllAvg = rssiAvg / rssiList.size();
             mCurrentRouterPoint.setRssi(-overllAvg);
             Log.d("ROUTER INFO", "base router rssi: " + -overllAvg);
-            Toast.makeText(getApplicationContext(), "base rssi: " + -overllAvg, Toast.LENGTH_SHORT).show();
+           // Toast.makeText(getApplicationContext(), "base rssi: " + -overllAvg, Toast.LENGTH_SHORT).show();
 
             mCurrentHeatMap.addRouterPin(mCurrentRouterPoint);
             ArrayList<WeightedLatLng> testList = mCurrentHeatMap.createWeightedList();

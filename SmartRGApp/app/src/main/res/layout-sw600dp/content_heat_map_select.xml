@@ -18,7 +18,7 @@
         android:textColor="@color/colorWhite"
         android:fontFamily="sans-serif-thin"
         android:textStyle="bold"
-        android:layout_marginTop="125dp"
+        android:layout_marginTop="150dp"
         />
 
 
@@ -30,7 +30,7 @@
         android:textColor="@color/colorGrey"
         android:textSize="28sp"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="18dp"
+        android:layout_marginTop="40dp"
         />
 
 

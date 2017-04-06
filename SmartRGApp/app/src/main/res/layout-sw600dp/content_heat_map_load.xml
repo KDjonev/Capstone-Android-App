@@ -9,7 +9,7 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context="capstone.cs189.com.smartnetwork.Activities.HeatMapLoadActivity"
+    tools:context=".Activities.HeatMapLoadActivity"
     tools:showIn="@layout/activity_heat_map_load">
 
     <TextView
@@ -17,16 +17,16 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Select a heat map to view"
-        android:textSize="22sp"
+        android:textSize="32sp"
         android:gravity="center"
-        android:textColor="@color/colorWhite"
+        android:textColor="@color/colorGrey"
         android:fontFamily="sans-serif-thin"
         android:textStyle="bold"
-        android:layout_marginTop="40dp"
+        android:layout_marginTop="60dp"
         />
 
     <RelativeLayout
-        android:layout_marginTop="50dp"
+        android:layout_marginTop="70dp"
         android:layout_marginBottom="16dp"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -37,7 +37,7 @@
         <ListView
             android:id="@+id/load_list_view"
             android:layout_width="wrap_content"
-            android:dividerHeight="16dp"
+            android:dividerHeight="24dp"
             android:divider="@color/colorPrimaryDark"
             android:layout_height="wrap_content">
 

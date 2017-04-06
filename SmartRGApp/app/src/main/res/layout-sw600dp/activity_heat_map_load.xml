@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:context="capstone.cs189.com.smartnetwork.Activities.HeatMapLoadActivity">
+    tools:context=".Activities.HeatMapLoadActivity">
 
     <android.support.design.widget.AppBarLayout
         android:layout_width="match_parent"
@@ -24,7 +24,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:text="Load Heat Map"
-                android:textSize="20sp"
+                android:textSize="24sp"
                 android:fontFamily="sans-serif"
                 android:textStyle="bold"
                 android:textColor="@color/colorWhite"
