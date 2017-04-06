@@ -133,7 +133,10 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
 
     String ip;
     String bad_test_value;
-    Boolean settingsChanged = false;
+    Boolean settingsChanged = false, hasRouterBeenPlaced = false;
+
+    int circle_radius = 150;
+
 
 
     double [] numbers = {1.0, 0.9, 0.8, 0.8, 0.5, 0.4, 0.2, 0.2, 0.2};
@@ -193,25 +196,24 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
         fab2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                fab_general_menu.close(true);
-                if (isPlacingRouter) {
-                    isPlacingRouter = false;
-                    isPlacingPin = true;
+                if (!hasRouterBeenPlaced) {
+                    Toast.makeText(getApplicationContext(), "Error! Place a router pin before you can create test points!", Toast.LENGTH_SHORT).show();
+                    return;
                 }
                 else {
-                    isPlacingPin = true;
-                }
+                    fab_general_menu.close(true);
+                    if (isPlacingRouter) {
+                        isPlacingRouter = false;
+                        isPlacingPin = true;
+                    }
+                    else {
+                        isPlacingPin = true;
+                    }
 
-                //if (mCurrentHeatMap.getRouterPointList().size() < 1) {
-                //    Toast.makeText(getApplicationContext(), "ERROR: Need at least one router pin to begin testing!", Toast.LENGTH_SHORT).show();
-                //    isPlacingRouter = false;
-                //    isPlacingPin = false;
-                // }
-                // else {
-                fab_general_menu.animate().translationY(fab_general_menu.getHeight()).setInterpolator(new LinearInterpolator()).start();
-                fab_test_menu.animate().translationY(fab_general_menu.getHeight()).setInterpolator(new LinearInterpolator()).start();
-                Toast.makeText(getApplicationContext(), "Tap to place pin at test location", Toast.LENGTH_SHORT).show();
-                // }
+                    fab_general_menu.animate().translationY(fab_general_menu.getHeight()).setInterpolator(new LinearInterpolator()).start();
+                    fab_test_menu.animate().translationY(fab_general_menu.getHeight()).setInterpolator(new LinearInterpolator()).start();
+                    Toast.makeText(getApplicationContext(), "Tap to place pin at test location", Toast.LENGTH_SHORT).show();
+                }
             }
         });
         fab3.setOnClickListener(new View.OnClickListener() {
@@ -273,7 +275,9 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
         if (requestCode == 1) {
             if(resultCode == Activity.RESULT_OK){
                 ip =data.getStringExtra("ip");
+                Log.d("HEATMAP SETTINGS RESULT", "collected ip: " + ip + " from heatmap settings");
                 bad_test_value = data.getStringExtra("bad_test");
+                Log.d("HEATMAP SETTINGS RESULT", "collected bad rssi value: " + bad_test_value + " from heatmap settings");
                 settingsChanged = true;
             }
             if (resultCode == Activity.RESULT_CANCELED) {
@@ -408,7 +412,7 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(lat, lon), 20.8f));
         // marker = mMap.addMarker(new MarkerOptions().position(new LatLng(lat, lon)).title("My location").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_man_location)));
 
-        addHeatMap();
+        //addHeatMap();
 
 
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
@@ -436,6 +440,7 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
                     router_long = latLng.longitude;
                     testMarker = mMap.addMarker(markerOptions);
                     isPlacingRouter = false;
+                    hasRouterBeenPlaced = true;
                     new initializeRouterBaseRssi().execute("");
 
                 }
@@ -609,7 +614,8 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
             Gradient gradient = new Gradient(colors, startPoints);
 
             provider = new HeatmapTileProvider.Builder().weightedData(testList).radius(50).opacity(0.5).gradient(gradient).build();
-            provider.setRadius(100);
+            //provider.setRadius(100);
+            provider.setRadius(circle_radius);
             overlay = mMap.addTileOverlay(new TileOverlayOptions().tileProvider(provider));
 
             dialog.dismiss();
@@ -752,11 +758,11 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
         }
         try {
             //Checks if the file already exists, if not copies it.
-            new FileInputStream("/data/data/capstone.cs189.com.smartnetwork/iperf9");
+            new FileInputStream("/data/data/com.smartrg.smartrgapp/iperf9");
         }
         catch (FileNotFoundException f) {
             try {
-                OutputStream out = new FileOutputStream("/data/data/capstone.cs189.com.smartnetwork/iperf9", false);
+                OutputStream out = new FileOutputStream("/data/data/com.smartrg.smartrgapp/iperf9", false);
                 byte[] buf = new byte[1024];
                 int len;
                 while ((len = inputStream.read(buf)) > 0) {
@@ -764,7 +770,7 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
                 }
                 inputStream.close();
                 out.close();
-                Process process =  Runtime.getRuntime().exec("/system/bin/chmod 744 /data/data/capstone.cs189.com.smartnetwork/iperf9");
+                Process process =  Runtime.getRuntime().exec("/system/bin/chmod 744 /data/data/com.smartrg.smartrgapp/iperf9");
                 process.waitFor();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -822,7 +828,7 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
                 for (String c : which_command) {
                     String[] commands = c.split(" ");
                     List<String> commandList = new ArrayList<>(Arrays.asList(commands));
-                    commandList.add(0, "/data/data/capstone.cs189.com.smartnetwork/iperf9");
+                    commandList.add(0, "/data/data/com.smartrg.smartrgapp/iperf9");
                     p = new ProcessBuilder().command(commandList).redirectErrorStream(true).start();
                     //JsonReader reader = new JsonReader(new InputStreamReader(p.getInputStream()));
                     BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
@@ -950,7 +956,8 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
             }
             Log.d("ABOUT TO ADD HEATMAP", "test pin rssi: " + rssi);
             Log.d("ABOUT TO ADD HEATMAP", "test pin intensity: " + mCurrentTestPoint.getIntensity());
-            Toast.makeText(getApplicationContext(), "rssi: " + rssi + " intensity: " + mCurrentTestPoint.getIntensity(), Toast.LENGTH_SHORT).show();
+
+           // Toast.makeText(getApplicationContext(), "rssi: " + rssi + " intensity: " + mCurrentTestPoint.getIntensity(), Toast.LENGTH_SHORT).show();
 
             int[]colors = { Color.rgb(255, 0, 0), Color.rgb(102,255,0)};
             float[] startPoints = { 0.2f, 1f};
@@ -959,12 +966,16 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
 
 
             provider = new HeatmapTileProvider.Builder().weightedData(testList).radius(50).opacity(0.5).gradient(gradient).build();
-            provider.setRadius(100);
+            //provider.setRadius(100);
+            provider.setRadius(circle_radius);
             overlay = mMap.addTileOverlay(new TileOverlayOptions().tileProvider(provider));
 
-            int rssi_limit = -50;
+            int rssi_limit = 75;
 
             if (settingsChanged) {
+                if (bad_test_value.equals("")) {
+                    bad_test_value = "75";
+                }
                 rssi_limit = Integer.parseInt(bad_test_value);
                 Log.d("HEAT_MAP_ALGORITHM", "rssi limit has been changed from default! It is now: " + rssi_limit);
             }

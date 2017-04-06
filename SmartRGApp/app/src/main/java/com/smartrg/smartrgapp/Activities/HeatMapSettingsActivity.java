@@ -35,13 +35,15 @@ public class HeatMapSettingsActivity extends PreferenceActivity {
         root.addView(bar, 0); // insert at top
         final Drawable upArrow = ContextCompat.getDrawable(this, R.drawable.abc_ic_ab_back_material);
         upArrow.setColorFilter(getResources().getColor(R.color.colorWhite), PorterDuff.Mode.SRC_ATOP);
-        ip  = PreferenceManager.getDefaultSharedPreferences(this).getString("ip", null);
-        bad_rssi  = PreferenceManager.getDefaultSharedPreferences(this).getString("bad_test", null);
+        //ip  = PreferenceManager.getDefaultSharedPreferences(this).getString("ip", null);
+        //bad_rssi  = PreferenceManager.getDefaultSharedPreferences(this).getString("bad_test", null);
 
         bar.setNavigationIcon(upArrow);
         bar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                ip  = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString("ip", null);
+                bad_rssi  = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString("bad_test", null);
                 Log.d("String", "Saving settings value for ip:: " + ip);
                 Log.d("String", "Saving settings value for bad_test rssi: "+ bad_rssi);
                 Intent returnIntent = new Intent();

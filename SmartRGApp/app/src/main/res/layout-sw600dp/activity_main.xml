@@ -24,7 +24,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:text="SmartNetwork"
-                android:textSize="24sp"
+                android:textSize="32sp"
                 android:fontFamily="sans-serif"
                 android:textStyle="bold"
                 android:textColor="@color/colorWhite"

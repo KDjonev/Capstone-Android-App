@@ -36,7 +36,7 @@ public class SpeedTestSettingsActivity extends PreferenceActivity {
         root.addView(bar, 0); // insert at top
         final Drawable upArrow = ContextCompat.getDrawable(this, R.drawable.abc_ic_ab_back_material);
         upArrow.setColorFilter(getResources().getColor(R.color.colorWhite), PorterDuff.Mode.SRC_ATOP);
-        ip  = PreferenceManager.getDefaultSharedPreferences(this).getString("ip", null);
+        //ip  = PreferenceManager.getDefaultSharedPreferences(this).getString("ip", null);
         dash_r = PreferenceManager.getDefaultSharedPreferences(this).getBoolean("enable_reverse", true);
 
         ListPreference duration = (ListPreference) findPreference("duration");
@@ -46,7 +46,8 @@ public class SpeedTestSettingsActivity extends PreferenceActivity {
         bar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.d("String", "String: " +ip);
+                ip  = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString("ip", null);
+                Log.d("String", "Ip entered in speed test settings: " +ip);
                 Intent returnIntent = new Intent();
                 returnIntent.putExtra("ip", ip);
                 setResult(RESULT_OK, returnIntent);

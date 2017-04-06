@@ -49,7 +49,7 @@ public class SpeedTestActivity extends AppCompatActivity {
     private WifiManager wifiManager;
     private String ipAddress;
     private IperfTask iperfTask;
-    private TextView button_start, rssi;
+    private TextView button_start, rssi, current_ip, current_link_speed;
     Runnable runnable;
     Handler handler = new Handler();
 
@@ -70,7 +70,15 @@ public class SpeedTestActivity extends AppCompatActivity {
         upArrow.setColorFilter(getResources().getColor(R.color.colorWhite), PorterDuff.Mode.SRC_ATOP);
         getSupportActionBar().setHomeAsUpIndicator(upArrow);
 
-        rssi = (TextView)findViewById(R.id.test_rssi);
+        rssi = (TextView)findViewById(R.id.speed_test_rssi_value);
+        current_ip = (TextView)findViewById(R.id.speed_test_ip_value);
+        current_link_speed = (TextView)findViewById(R.id.speed_test_linkspeed_value);
+        wifiManager = (WifiManager)getApplicationContext().getSystemService(WIFI_SERVICE);
+        WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+        if (wifiInfo != null) {
+            String s = android.text.format.Formatter.formatIpAddress(wifiManager.getDhcpInfo().gateway);
+            current_ip.setText(s);
+        }
         colorArcProgressBar = (ColorArcProgressBar) findViewById(R.id.speed_meter);
         button_start = (TextView)findViewById(R.id.button_start);
         button_start.setOnClickListener(new View.OnClickListener() {
@@ -156,6 +164,8 @@ public class SpeedTestActivity extends AppCompatActivity {
             Toast.makeText(getApplicationContext(), "Test failed! Verify your device is connected to wifi and try again", Toast.LENGTH_SHORT).show();
             return;
         }
+
+
         // copy the iperf executable into device's internal storage
         InputStream inputStream;
         try {
@@ -168,11 +178,11 @@ public class SpeedTestActivity extends AppCompatActivity {
         }
         try {
             //Checks if the file already exists, if not copies it.
-            new FileInputStream("/data/data/capstone.cs189.com.smartnetwork/iperf9");
+            new FileInputStream("/data/data/com.smartrg.smartrgapp/iperf9");
         }
         catch (FileNotFoundException f) {
             try {
-                OutputStream out = new FileOutputStream("/data/data/capstone.cs189.com.smartnetwork/iperf9", false);
+                OutputStream out = new FileOutputStream("/data/data/com.smartrg.smartrgapp/iperf9", false);
                 byte[] buf = new byte[1024];
                 int len;
                 while ((len = inputStream.read(buf)) > 0) {
@@ -180,7 +190,7 @@ public class SpeedTestActivity extends AppCompatActivity {
                 }
                 inputStream.close();
                 out.close();
-                Process process =  Runtime.getRuntime().exec("/system/bin/chmod 744 /data/data/capstone.cs189.com.smartnetwork/iperf9");
+                Process process =  Runtime.getRuntime().exec("/system/bin/chmod 744 /data/data/com.smartrg.smartrgapp/iperf9");
                 process.waitFor();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -202,15 +212,17 @@ public class SpeedTestActivity extends AppCompatActivity {
 
     public class IperfTask extends AsyncTask<Void, String, String> {
         Process p = null;
-        String command = "iperf3 -c " + ipAddress + " -R";
+        String command = "iperf3 -c " + ipAddress + " -R -t 20";
         int max;
+        WifiInfo wifiInfo;
+        BufferedReader reader;
+        boolean isError = false;
 
         @Override
         protected void onPreExecute() {
-            WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+            wifiInfo = wifiManager.getConnectionInfo();
             max = wifiInfo.getLinkSpeed();
             Log.d("ON_PRE_EXECUTE", "link speed: " + max);
-            //button.setText("STOP");
         }
 
         @Override
@@ -224,9 +236,9 @@ public class SpeedTestActivity extends AppCompatActivity {
             try {
                 String[] commands = command.split(" ");
                 List<String> commandList = new ArrayList<>(Arrays.asList(commands));
-                commandList.add(0, "/data/data/capstone.cs189.com.smartnetwork/iperf9");
+                commandList.add(0, "/data/data/com.smartrg.smartrgapp/iperf9");
                 p = new ProcessBuilder().command(commandList).redirectErrorStream(true).start();
-                BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+                reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
                 int read;
                 char[] buffer = new char[4096];
                 StringBuffer output = new StringBuffer();
@@ -253,6 +265,7 @@ public class SpeedTestActivity extends AppCompatActivity {
             ArrayList<String> outList = new ArrayList<>(Arrays.asList(s));
             for (int i = 0; i < outList.size(); i++) {
                 // Log.d("ON_PROGRESS_UPDATE", "list: " + outList.get(i));
+
                 if (outList.get(i).equals("-")) {
                     if (outList.get(i + 1).equals("-")) {
                         Log.d("ON_PROGRESS_UPDATE", "Should be end of iperf, should exit");
@@ -261,13 +274,38 @@ public class SpeedTestActivity extends AppCompatActivity {
                 }
             }
 
+            // check if any error occurs
+            if (outList.contains("error")) {
+                Log.d("ERROR", "Error found in iperf output! Exiting. . . ");
+                isError = true;
+                try {
+                    reader.close();
+                    p.destroy();
+                    return;
+                } catch (IOException e) {
+                    Log.d("IOEXCEPTION", "IO exception thrown from onProgressUpdate in speedtest");
+                    e.printStackTrace();
+                }
+            }
+
+            // parse the mbits/sec value from iperf output
             if (outList.contains("sec")) {
                 String st = outList.get(outList.size() - 2);
                 Log.d("ON_PROGRESS_UPDATE", "string speed value: " + st);
                 if (st.equals("iperf")) {
                     return;
                 }
-                int speed = (int)Double.parseDouble(st);
+                //wifiInfo = wifiManager.getConnectionInfo();
+                //max = wifiInfo.getLinkSpeed();
+                int speed = 0;
+                if (st.equals("")) {
+                    Log.d("IPERF ERROR", "case where mbits/sec value from iperf is empty. shouldnt reallt have this happening");
+                    return;
+                }
+                else {
+                    speed = (int) Double.parseDouble(st);
+                }
+
                 Log.d("ON_PROGRESS_UPDATE", "speed: " + speed + " Mbits/sec" + ", max: " + max);
                 if (speed > max) {
                     max = speed;
@@ -276,7 +314,8 @@ public class SpeedTestActivity extends AppCompatActivity {
                 colorArcProgressBar.setMaxValues(max);
             }
             WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-            rssi.setText("RSSI: " + wifiInfo.getRssi());
+            rssi.setText(wifiInfo.getRssi() + " dBm");
+            current_link_speed.setText(max + " Mbits/sec");
 
         }
 
@@ -292,7 +331,10 @@ public class SpeedTestActivity extends AppCompatActivity {
 
                     e.printStackTrace();
                 }
-                Toast.makeText(getApplicationContext(), "test has finished", Toast.LENGTH_SHORT).show();
+                if (isError) {
+                    Toast.makeText(getApplicationContext(), "ERROR! Verify IP is correct and WiFi is connected and try again", Toast.LENGTH_LONG).show();
+                }
+                else Toast.makeText(getApplicationContext(), "Test has finished!", Toast.LENGTH_LONG).show();
                 //  button.setText("TEST");
             }
         }

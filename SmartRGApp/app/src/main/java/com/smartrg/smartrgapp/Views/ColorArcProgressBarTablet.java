@@ -20,7 +20,7 @@ import com.smartrg.smartrgapp.R;
  * colorful arc progress bar
  * Created by shinelw on 12/4/15.
  */
-public class ColorArcProgressBar extends View {
+public class ColorArcProgressBarTablet extends View {
 
     private int mWidth;
     private int mHeight;
@@ -49,9 +49,6 @@ public class ColorArcProgressBar extends View {
     private int[] colors = new int[]{Color.GREEN, Color.YELLOW, Color.RED, Color.RED};
     private float maxValues = 60;
     private float curValues = 0;
-
-    /** dimmensions for phone screen size **/
-    /*
     private float bgArcWidth = dipToPx(2);
     private float progressWidth = dipToPx(10);
     private float textSize = dipToPx(60);
@@ -61,19 +58,6 @@ public class ColorArcProgressBar extends View {
     private float longdegree = dipToPx(13);
     private float shortdegree = dipToPx(5);
     private final int DEGREE_PROGRESS_DISTANCE = dipToPx(8);
-    */
-
-    /** dimmensions for tablet screen size **/
-    private float bgArcWidth = dipToPx(2);
-    private float progressWidth = dipToPx(10);
-    private float textSize = dipToPx(120);
-    private float hintSize = dipToPx(30);
-    private float curSpeedSize = dipToPx(26);
-    private int aniSpeed = 1000;
-    private float longdegree = dipToPx(13);
-    private float shortdegree = dipToPx(5);
-    private final int DEGREE_PROGRESS_DISTANCE = dipToPx(8);
-
 
     private String hintColor = "#ffffff";
     private String longDegreeColor = "#676767";
@@ -91,18 +75,18 @@ public class ColorArcProgressBar extends View {
     // sweepAngle / maxValues 的值
     private float k;
 
-    public ColorArcProgressBar(Context context) {
+    public ColorArcProgressBarTablet(Context context) {
         super(context, null);
         initView();
     }
 
-    public ColorArcProgressBar(Context context, AttributeSet attrs) {
+    public ColorArcProgressBarTablet(Context context, AttributeSet attrs) {
         super(context, attrs, 0);
         initCofig(context, attrs);
         initView();
     }
 
-    public ColorArcProgressBar(Context context, AttributeSet attrs, int defStyleAttr) {
+    public ColorArcProgressBarTablet(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         initCofig(context, attrs);
         initView();
