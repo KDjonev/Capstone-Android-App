@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory
+        android:title="Test Options"
+        android:key="test_category">
+
+        <ListPreference
+            android:key="duration"
+            android:title="Test duration"
+            android:summary="Select the length of each test"
+            android:defaultValue="10"
+            android:entries="@array/updateInterval"
+            android:entryValues="@array/updateIntervalValues" />
+
+        <SwitchPreference
+            android:key="enable_reverse"
+            android:summary="Test with reverse stream or standard"
+            android:title="Enable -R option"
+            android:defaultValue="true"/>
+
+        <EditTextPreference
+            android:key="ip"
+            android:title="Set IP manually"
+            android:summary="Enter your router's IP"
+            android:dialogTitle="Router IP"
+            android:dialogMessage="Enter your router's IP address"
+            android:defaultValue="" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="Advanced"
+        android:key="advanced_category">
+
+
+        <EditTextPreference
+            android:key="custom_iperf"
+            android:title="Custom iperf command"
+            android:summary="Enter a specfic command"
+            android:dialogTitle="Iperf Command"
+            android:dialogMessage="Enter the complete iperf command"
+            android:defaultValue=""
+            android:inputType="text"/>
+
+    </PreferenceCategory>
+
+
+    <PreferenceCategory
+        android:title="More Information"
+        android:key="info_category">
+
+        <EditTextPreference
+            android:key="more info"
+            android:title="About this test"
+            android:summary="What does this test tell you?"
+            android:dialogTitle="Nothing"
+            android:dialogMessage="Nothing"
+            android:defaultValue=""
+            android:inputType="text"/>
+
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

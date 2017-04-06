@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_home"
+            android:icon="@mipmap/ic_home_black_24dp"
+            android:title="Home"
+            />
+        <item
+            android:id="@+id/nav_speed_test"
+            android:icon="@mipmap/ic_network_check_black_24dp"
+            android:checked="true"
+            android:title="Speed Test" />
+        <item
+            android:id="@+id/nav_map"
+            android:icon="@mipmap/ic_map_black_24dp"
+            android:title="Wifi Heat Map" />
+        <item
+            android:id="@+id/nav_settings"
+            android:icon="@mipmap/ic_settings_black_24dp"
+            android:title="Settings" />
+    </group>
+
+    <item android:title="Details">
+        <menu>
+            <item
+                android:id="@+id/nav_share"
+                android:icon="@mipmap/ic_info_outline_black_24dp"
+                android:title="More Information" />
+        </menu>
+    </item>
+
+</menu>

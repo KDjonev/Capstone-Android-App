@@ -1,3 +1,16 @@
 <resources>
-    <string name="app_name">SmartRGApp</string>
+    <string name="app_name">SmartNetwork</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_heat_map">Wifi Heat Map</string>
+    <string name="title_activity_speed_test">Speed Test</string>
+    <string name="title_activity_home">HomeActivity</string>
+    <string name="title_activity_maps">Map</string>
+    <string name="title_activity_main">MainActivity</string>
+    <string name="title_activity_settings">SettingsActivity</string>
+    <string name="title_activity_speed_test_settings">SpeedTestSettingsActivity</string>
+    <string name="title_activity_heat_map_load">HeatMapLoadActivity</string>
 </resources>

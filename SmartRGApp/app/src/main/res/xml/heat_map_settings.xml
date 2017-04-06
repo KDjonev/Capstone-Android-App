@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory
+        android:title="Options"
+        android:key="test_category">
+
+        <ListPreference
+            android:key="duration"
+            android:title="Test duration"
+            android:summary="Select the length of each test"
+            android:defaultValue="10"
+            android:entries="@array/updateInterval"
+            android:entryValues="@array/updateIntervalValues" />
+
+        <EditTextPreference
+            android:key="ip"
+            android:title="Set IP manually"
+            android:summary="Enter your router's IP"
+            android:dialogTitle="Router IP"
+            android:dialogMessage="Enter your router's IP address"
+            android:defaultValue="" />
+
+        <EditTextPreference
+            android:key="bad_test"
+            android:title="Set test bounds"
+            android:summary="Enter the max RSSI value to allow"
+            android:dialogTitle="Test Bounds"
+            android:dialogMessage="Enter the max RSSI value to allow"
+            android:defaultValue="" />
+
+
+    </PreferenceCategory>
+
+</PreferenceScreen>
