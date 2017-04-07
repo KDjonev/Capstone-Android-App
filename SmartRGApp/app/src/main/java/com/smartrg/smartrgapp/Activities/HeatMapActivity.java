@@ -138,6 +138,7 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
     int circle_radius = 150;
 
     boolean isLoading;
+    int pos;
 
     double [] numbers = {1.0, 0.9, 0.8, 0.8, 0.5, 0.4, 0.2, 0.2, 0.2};
 
@@ -271,7 +272,7 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
 
         // loading a heat map case
         isLoading = getIntent().getBooleanExtra("load", false);
-
+        pos = getIntent().getIntExtra("pos", 0);
     }
 
     @Override
@@ -422,7 +423,8 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
         // loading a heat map case
         if (isLoading) {
             Log.d("LOAD HEAT MAP", "loading a heat map condition, displying now...");
-            addHeatMap();
+            if (pos == 0) addHeatMapGood();
+            else addHeatMapBad();
             fab_general_menu.setVisibility(View.INVISIBLE);
         }
 
@@ -505,7 +507,7 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
 
     }
 
-    private void addHeatMap() {
+    private void addHeatMapGood() {
 
         Log.d("ADDED HEAT MAP", "addHeatMap called!");
         list = new ArrayList<>();
@@ -515,6 +517,42 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
         list.add(new WeightedLatLng(new LatLng(34.40931758166454, -119.86458085477352), 0.7));
         list.add(new WeightedLatLng(new LatLng(34.40929849556889, -119.86454866826534), 0.8));
         list.add(new WeightedLatLng(new LatLng(34.40934551927497, -119.86453525722028), 0.7));
+        //list.add(new WeightedLatLng(new LatLng(34.41473564384734, -119.85557265579702), 0.2));
+        //list.add(new WeightedLatLng(new LatLng(34.414703835746025, -119.85563535243273), 0.4));
+        //list.add(new WeightedLatLng(new LatLng(34.41464796409531, -119.85560383647679), 0.7));
+        //list.add(new WeightedLatLng(new LatLng(34.414672580817296, -119.85554683953524), 0.8));
+        //list.add(new WeightedLatLng(new LatLng(34.41465653845998, -119.85555287450552), 0.8));
+        //list.add(new WeightedLatLng(new LatLng(34.414737579992234, -119.85561087727548), 0.2));
+        //list.add(new WeightedLatLng(new LatLng(34.41471766535677, -119.8556024953723), 0.3));
+        //list.add(new WeightedLatLng(new LatLng(34.414709920775024, -119.85555790364742), 0.5));
+
+        int[]colors = { Color.rgb(255, 0, 0), Color.rgb(102,255,0)};
+        float[] startPoints = { 0.2f, 1f};
+        Gradient gradient = new Gradient(colors, startPoints);
+
+
+
+        provider = new HeatmapTileProvider.Builder().weightedData(list).radius(50).opacity(0.5).gradient(gradient).build();
+        provider.setRadius(100);
+        overlay = mMap.addTileOverlay(new TileOverlayOptions().tileProvider(provider));
+
+        double load_lat, load_lon;
+        load_lat = 34.40935851994197;
+        load_lon = -119.86458420753479;
+
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(load_lat, load_lon), 20.8f));
+    }
+
+    private void addHeatMapBad() {
+
+        Log.d("ADDED HEAT MAP", "addHeatMap called!");
+        list = new ArrayList<>();
+        list.add(new WeightedLatLng(new LatLng(34.409400564638496, -119.86459124833344), 1.0));
+        list.add(new WeightedLatLng(new LatLng(34.409395585662374, -119.86453995108603), 0.8));
+        list.add(new WeightedLatLng(new LatLng(34.40935851994197, -119.86458420753479), 0.7));
+        list.add(new WeightedLatLng(new LatLng(34.40931758166454, -119.86458085477352), 0.5));
+        list.add(new WeightedLatLng(new LatLng(34.40929849556889, -119.86454866826534), 0.4));
+        list.add(new WeightedLatLng(new LatLng(34.40934551927497, -119.86453525722028), 0.3));
         //list.add(new WeightedLatLng(new LatLng(34.41473564384734, -119.85557265579702), 0.2));
         //list.add(new WeightedLatLng(new LatLng(34.414703835746025, -119.85563535243273), 0.4));
         //list.add(new WeightedLatLng(new LatLng(34.41464796409531, -119.85560383647679), 0.7));
