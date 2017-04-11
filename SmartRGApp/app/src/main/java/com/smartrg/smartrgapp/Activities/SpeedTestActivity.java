@@ -10,6 +10,9 @@ import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.Looper;
+import android.os.Message;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.util.TimeUtils;
 import android.util.Log;
@@ -36,11 +39,27 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.PushbackInputStream;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
 import com.smartrg.smartrgapp.R;
 import com.smartrg.smartrgapp.Views.ColorArcProgressBar;
 
@@ -56,6 +75,9 @@ public class SpeedTestActivity extends AppCompatActivity {
 
     private String ip;
     private boolean settingsChanged=false;
+
+    BufferedReader reader;
+    boolean isReadyToRead;
 
 
 
@@ -213,20 +235,49 @@ public class SpeedTestActivity extends AppCompatActivity {
         iperfTask.execute();
     }
 
+   /* public boolean isReadable(final BufferedReader br) {
+        final char[] test_buf = new char[4];
+        isReadyToRead = false;
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                Log.d("HANDLER", "Handler running...");
+                try {
+                    Log.d("READER", "about to try to read");
+                    br.read(test_buf);
+                    isReadyToRead = true;
+                    Log.d("HANDLER", "isReading set to true");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }, 2000);
+        Log.d("HANDLER", "Handler finished!");
+        return isReadyToRead;
+    }
+
+    private Handler handler = new Handler(new Handler.Callback() {
+        @Override
+        public boolean handleMessage(Message msg) {
+            return false;
+        }
+    }*/
+
 
     public class IperfTask extends AsyncTask<Void, String, String> {
         Process p = null;
         String command = "iperf3 -c " + ipAddress + " -R -t 20";
         int max;
         WifiInfo wifiInfo;
-        BufferedReader reader;
-        boolean isError = false;
+        //BufferedReader reader;
+        boolean isError = false, isReading;
 
         @Override
         protected void onPreExecute() {
             wifiInfo = wifiManager.getConnectionInfo();
             max = wifiInfo.getLinkSpeed();
             Log.d("ON_PRE_EXECUTE", "link speed: " + max);
+
         }
 
         @Override
@@ -250,10 +301,29 @@ public class SpeedTestActivity extends AppCompatActivity {
                 p = new ProcessBuilder().command(commandList).redirectErrorStream(true).start();
                 reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
                 int read;
-                char[] buffer = new char[4096];
+                final char[] buffer = new char[4096];
+                final char[] test_buf = new char[4];
                 StringBuffer output = new StringBuffer();
 
-              //  if (reader.read(buffer) > 0) {
+                PushbackInputStream pushbackInputStream = new PushbackInputStream(p.getInputStream());
+                int b;
+                b = pushbackInputStream.read();
+                if (b == -1) {
+                    Log.d("PUSHBACKINPUT", "nothing to read");
+                }
+                pushbackInputStream.unread(b);
+
+/*
+
+                long startTime = System.currentTimeMillis();
+                do {
+                    Log.d("TIMER", "About to read");
+                    if (reader.read(test_buf) > 0) isReading = true;
+                    Log.d("TIMER", "Past read, setting bool to true");
+                } while ((System.currentTimeMillis() - startTime) <= 3000);
+                Log.d("TIMER", "timer has finished");*/
+
+                //  if (reader.read(buffer) > 0) {
               //      Log.d("WHILE", "While condition is true");
               //  }
               //  else {
@@ -269,11 +339,100 @@ public class SpeedTestActivity extends AppCompatActivity {
                     return null;
                 }*/
 
+
+
+               /* ExecutorService executorService = Executors.newFixedThreadPool(2);
+
+               try {
+                   int readByte = 1;
+                   Callable<Integer> readTask = new Callable<Integer>() {
+                       @Override
+                       public Integer call() throws Exception {
+                           return p.getInputStream().read();
+                       }
+                   };
+                   while (readByte >= 0) {
+                       Future<Integer> future = executorService.submit(readTask);
+                       try {
+                           readByte = future.get(3000, TimeUnit.SECONDS);
+                       } catch (InterruptedException e) {
+
+                       } catch (ExecutionException ee) {
+
+                       }
+                       if (readByte >= 0)
+                           System.out.println("Read: " + readByte);
+                   }
+               } catch (TimeoutException e) {
+                   Log.d("TIMEOUT", "Timeout called");
+               }
+*/
+
+
+               /* URL url = new URL("http://www.smartrg.com/");
+                URLConnection urlConnection = url.openConnection();
+                urlConnection.setReadTimeout(3000);
+                try {
+                    int n = reader.read(buffer);
+                    Log.d("READER", "read is working");
+                    isCorrectIP = true;
+                } catch (SocketTimeoutException e) {
+                    if (isCorrectIP) {
+                        Log.d("TIMEOUT OCCURS", "ip is correct. Shouldnt really be here");
+                    }
+                    else {
+                        Log.d("TIMEOUT OCCURS", "ip is wrong. Exiting...");
+                    }
+                }*/
+
+               /* Looper.prepare();
+                Log.d("HANDLER", "before Handler is made...");
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        Log.d("HANDLER", "Handler running...");
+                        try {
+                            Log.d("READER", "about to try to read");
+                            reader.read(test_buf);
+                            isReading = true;
+                            Log.d("HANDLER", "isReading set to true");
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }, 3000);
+                Log.d("HANDLER", "Handler finished!");
+
+
+                if (isReading) {
+                    Log.d("READER", "Able to read!");
+                }
+                else Log.d("READER", "Unable to read :(");*/
+
+               /* try {
+                    Log.d("SOCKET", "inside try block");
+                    //Socket socket = new Socket();
+                    //socket.connect(new InetSocketAddress((""), 3000));
+                    int i = reader.read(test_buf);
+                    Log.d("SOCKET", "past the blocking read call!");
+                    isReading = true;
+                    URL url = new URL("http://50.63.66.138:1044/update");
+                    URLConnection urlConnection = url.openConnection();
+                    urlConnection.setConnectTimeout(3000);
+                    urlConnection.connect();
+                    Log.d("SOCKET", "after connect line");
+                } catch (SocketTimeoutException e) {
+                    Log.d("SOCKET", "socket timeout exception!");
+                }
+
+                if (isReading) Log.d("READER", "Able to read!");
+                else Log.d("READER", "Can't read :(");*/
+
                 Log.d("IPERF WHILE LOOP", "right before while loop");
                 while((read = reader.read(buffer)) != -1) {
                // while(reader.ready()) {
                     //read = reader.read(buffer);
-                    Log.d("IPERF WHILE LOOP", "in while loop");
+                   // Log.d("IPERF WHILE LOOP", "in while loop");
                     output.append(buffer, 0, read);
                     publishProgress(output.toString());
                     output.delete(0, output.length());
