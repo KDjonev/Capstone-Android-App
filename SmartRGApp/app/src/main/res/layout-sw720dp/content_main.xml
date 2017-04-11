@@ -43,9 +43,9 @@
 
                 <ImageView
                     android:id="@+id/image_top_left"
-                    android:layout_width="70dp"
-                    android:layout_height="70dp"
-                    android:layout_marginTop="60dp"
+                    android:layout_width="150dp"
+                    android:layout_height="150dp"
+                    android:layout_marginTop="70dp"
                     android:layout_centerHorizontal="true"
                     android:src="@drawable/speedometer"
                     />
@@ -54,11 +54,11 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_below="@id/image_top_left"
-                    android:layout_marginTop="20dp"
+                    android:layout_marginTop="50dp"
                     android:textColor="@android:color/white"
                     android:layout_centerHorizontal="true"
                     android:text="Speed Test"
-                    android:textSize="16sp"
+                    android:textSize="28sp"
                     android:fontFamily="sans-serif-thin"
                     android:textStyle="bold"
                     />
@@ -91,10 +91,10 @@
 
                 <ImageView
                     android:id="@+id/image_top_right"
-                    android:layout_width="70dp"
-                    android:layout_height="70dp"
+                    android:layout_width="150dp"
+                    android:layout_height="150dp"
+                    android:layout_marginTop="70dp"
                     android:layout_centerHorizontal="true"
-                    android:layout_marginTop="60dp"
                     android:src="@drawable/map"
                     />
 
@@ -102,11 +102,11 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_below="@id/image_top_right"
-                    android:layout_marginTop="28dp"
+                    android:layout_marginTop="50dp"
                     android:textColor="@android:color/white"
                     android:layout_centerHorizontal="true"
                     android:text="Heat Map"
-                    android:textSize="16sp"
+                    android:textSize="28sp"
                     android:fontFamily="sans-serif-thin"
                     android:textStyle="bold"
                     />
@@ -148,10 +148,10 @@
 
                 <ImageView
                     android:id="@+id/image_bot_left"
-                    android:layout_width="70dp"
-                    android:layout_height="70dp"
+                    android:layout_width="150dp"
+                    android:layout_height="150dp"
+                    android:layout_marginTop="70dp"
                     android:layout_centerHorizontal="true"
-                    android:layout_marginTop="60dp"
                     android:src="@drawable/wifi"
                     />
 
@@ -159,11 +159,11 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_below="@id/image_bot_left"
-                    android:layout_marginTop="28dp"
+                    android:layout_marginTop="60dp"
                     android:textColor="@android:color/white"
                     android:layout_centerHorizontal="true"
                     android:text="Devices"
-                    android:textSize="16sp"
+                    android:textSize="28sp"
                     android:fontFamily="sans-serif-thin"
                     android:textStyle="bold"
                     />
@@ -194,10 +194,10 @@
 
                 <ImageView
                     android:id="@+id/image_bot_right"
-                    android:layout_width="70dp"
-                    android:layout_height="70dp"
+                    android:layout_width="150dp"
+                    android:layout_height="150dp"
+                    android:layout_marginTop="70dp"
                     android:layout_centerHorizontal="true"
-                    android:layout_marginTop="60dp"
                     android:src="@drawable/settings"
                     />
 
@@ -205,11 +205,11 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_below="@id/image_bot_right"
-                    android:layout_marginTop="28dp"
+                    android:layout_marginTop="60dp"
                     android:textColor="@android:color/white"
                     android:layout_centerHorizontal="true"
                     android:text="Settings"
-                    android:textSize="16sp"
+                    android:textSize="28sp"
                     android:fontFamily="sans-serif-thin"
                     android:textStyle="bold"
                     />

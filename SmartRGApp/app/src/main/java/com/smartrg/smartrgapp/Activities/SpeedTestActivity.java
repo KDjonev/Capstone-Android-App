@@ -11,6 +11,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.util.TimeUtils;
 import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -121,7 +122,10 @@ public class SpeedTestActivity extends AppCompatActivity {
         if (requestCode == 1) {
             if(resultCode == Activity.RESULT_OK){
                 ip =data.getStringExtra("ip");
-                settingsChanged = true;
+                if (!ip.equals("")) {
+                    current_ip.setText(ip);
+                    settingsChanged = true;
+                }
             }
             if (resultCode == Activity.RESULT_CANCELED) {
                 //Write your code if there's no result
@@ -234,6 +238,12 @@ public class SpeedTestActivity extends AppCompatActivity {
                 return null;
             }
             try {
+
+                /** TODO: Still need to handle case where router does not have iperf, or ip is completely wrong, or other weird cases where
+                 * does execute body of while loop but prints log before it. And not after while loop either
+                 */
+
+                Log.d("IPERF EXECUTION", "command is valid, trying to communicate with iperf...");
                 String[] commands = command.split(" ");
                 List<String> commandList = new ArrayList<>(Arrays.asList(commands));
                 commandList.add(0, "/data/data/com.smartrg.smartrgapp/iperf9");
@@ -242,11 +252,33 @@ public class SpeedTestActivity extends AppCompatActivity {
                 int read;
                 char[] buffer = new char[4096];
                 StringBuffer output = new StringBuffer();
-                while((read = reader.read(buffer)) > 0) {
+
+              //  if (reader.read(buffer) > 0) {
+              //      Log.d("WHILE", "While condition is true");
+              //  }
+              //  else {
+              //      Log.d("WHILE", "While condition is false");
+              //  }
+               /* if (reader.ready()) Log.d("IPERF WHILE LOOP", "reader ready");
+                else {
+                    Log.d("IPERF WHILE LOOP", "reader not ready. Exiting iperf execution...");
+                    reader.close();
+                    p.destroy();
+                    Log.d("IPERF WHILE LOOP", "destroyed processs and closed reader");
+                    isError = true;
+                    return null;
+                }*/
+
+                Log.d("IPERF WHILE LOOP", "right before while loop");
+                while((read = reader.read(buffer)) != -1) {
+               // while(reader.ready()) {
+                    //read = reader.read(buffer);
+                    Log.d("IPERF WHILE LOOP", "in while loop");
                     output.append(buffer, 0, read);
                     publishProgress(output.toString());
                     output.delete(0, output.length());
                 }
+                Log.d("IPERF EXECUTION", "iperf done, closing reader and destroying process");
                 reader.close();
                 p.destroy();
             }
@@ -300,6 +332,10 @@ public class SpeedTestActivity extends AppCompatActivity {
                 int speed = 0;
                 if (st.equals("")) {
                     Log.d("IPERF ERROR", "case where mbits/sec value from iperf is empty. shouldnt reallt have this happening");
+                    return;
+                }
+                if (st.equals("Mbits/sec")) {
+                    Log.d("IPERF ERROR", "case where iperf output comes after --- line. Handles when parsing double would throw error");
                     return;
                 }
                 else {

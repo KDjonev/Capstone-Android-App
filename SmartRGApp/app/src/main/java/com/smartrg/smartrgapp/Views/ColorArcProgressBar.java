@@ -66,9 +66,9 @@ public class ColorArcProgressBar extends View {
     /** dimmensions for tablet screen size **/
     private float bgArcWidth = dipToPx(2);
     private float progressWidth = dipToPx(10);
-    private float textSize = dipToPx(120);
-    private float hintSize = dipToPx(30);
-    private float curSpeedSize = dipToPx(26);
+    private float textSize = dipToPx(100);
+    private float hintSize = dipToPx(20);
+    private float curSpeedSize = dipToPx(20);
     private int aniSpeed = 1000;
     private float longdegree = dipToPx(13);
     private float shortdegree = dipToPx(5);
