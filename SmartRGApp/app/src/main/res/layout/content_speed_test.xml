@@ -37,7 +37,7 @@
         android:layout_width="wrap_content"
         android:layout_height="55dp"
         android:id="@+id/button_start"
-        android:layout_marginTop="32dp"
+        android:layout_marginTop="24dp"
         android:layout_centerHorizontal="true"
         android:layout_below="@id/speed_meter"
         android:background="@drawable/pill_button"
@@ -54,16 +54,103 @@
         android:clickable="true"
         />
 
-    <TextView
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:id="@+id/speed_test_stats_layout1"
+        android:layout_width="400dp"
         android:layout_height="wrap_content"
-        android:text=""
-        android:id="@+id/test_rssi"
-        android:layout_centerHorizontal="true"
         android:layout_below="@id/button_start"
-        android:textSize="17sp"
-        android:textColor="@color/colorWhite"
         android:layout_marginTop="20dp"
-        />
+        android:orientation="horizontal"
+        android:layout_centerHorizontal="true"
+        android:paddingLeft="40dp"
+        >
+        <TextView
+            android:id="@+id/speed_test_ip"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:text="IP Address: "
+            android:gravity="left"
+            android:textSize="17sp"
+            android:textColor="@color/colorGrey"
+            />
+
+        <TextView
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/speed_test_ip_value"
+            android:textSize="17sp"
+            android:textColor="@color/colorWhite"
+            android:text="0.0.0.0"
+            android:layout_marginLeft="20dp"
+
+            />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/speed_test_stats_layout2"
+        android:layout_width="400dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/speed_test_stats_layout1"
+        android:layout_marginTop="20dp"
+        android:orientation="horizontal"
+        android:layout_centerHorizontal="true"
+        android:paddingLeft="40dp"
+
+        >
+        <TextView
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:text="Link Speed: "
+            android:gravity="left"
+            android:id="@+id/test_max_link_speed"
+            android:textSize="17sp"
+            android:textColor="@color/colorGrey"
+            />
+        <TextView
+            android:layout_width="210dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/speed_test_linkspeed_value"
+            android:textSize="17sp"
+            android:textColor="@color/colorWhite"
+            android:text="0 Mbits/sec"
+            android:layout_marginLeft="20dp"
+
+            />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/speed_test_stats_layout3"
+        android:layout_width="400dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/speed_test_stats_layout2"
+        android:layout_marginTop="20dp"
+        android:orientation="horizontal"
+        android:layout_centerHorizontal="true"
+        android:paddingLeft="40dp"
+        >
+
+        <TextView
+            android:layout_centerHorizontal="true"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:text="RSSI: "
+            android:gravity="left"
+            android:id="@+id/test_rssi"
+            android:textSize="17sp"
+            android:textColor="@color/colorGrey"
+            />
+        <TextView
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/speed_test_rssi_value"
+            android:textSize="17sp"
+            android:textColor="@color/colorWhite"
+            android:text="0 dBm"
+            android:layout_marginLeft="20dp"
+            />
+
+    </LinearLayout>
 
 </RelativeLayout>

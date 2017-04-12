@@ -111,26 +111,8 @@ public class SpeedTestActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 initIperf();
-                //fakeBadSpeedTest();
             }
         });
-    }
-
-    int [] numbers = {20, 19, 22, 25, 20, 18, 17, 19, 21, 20, 21, 18};
-
-    public void fakeBadSpeedTest() {
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                runnable = this;
-                Random r = new Random();
-                int randomActual = r.nextInt(60 - 50) + 50;
-                int randomMax = r.nextInt(100 - 80) + 80;
-                colorArcProgressBar.setCurrentValues(randomActual);
-                colorArcProgressBar.setMaxValues(70);
-                handler.postDelayed(this, 800);
-            }
-        }, 2000);
     }
 
     @Override
@@ -267,13 +249,19 @@ public class SpeedTestActivity extends AppCompatActivity {
     }*/
 
 
+    /**
+     * Async Task to handle iperf command issuing and handling of iperf responses
+     *
+     *
+     */
+
     public class IperfTask extends AsyncTask<Void, String, String> {
         Process p = null;
         String command = "iperf3 -c " + ipAddress + " -R -t 20";
         int max;
         WifiInfo wifiInfo;
         //BufferedReader reader;
-        boolean isError = false, isReading;
+        boolean isError = false, isReading = false, cancelled = false;
 
         @Override
         protected void onPreExecute() {
@@ -307,187 +295,56 @@ public class SpeedTestActivity extends AppCompatActivity {
                 final char[] buffer = new char[4096];
                 final char[] test_buf = new char[4];
                 StringBuffer output = new StringBuffer();
+                ExecutorService executor = Executors.newFixedThreadPool(1);
 
-                Looper.prepare();
-                new CountDownTimer(3000, 1000) {
-                    public void onTick(long millisUntilFinished) {
-                        try {
-                            Log.d("TIMER", "on Tick called");
-                            int i = reader.read(test_buf);
-                            isReading = true;
-                            Log.d("TIMER", "isReading changed");
-                        } catch (IOException e) {
-
-                        }
-                    }
-                    public void onFinish() {
-                        Log.d("TIMER", "om Finish called");
-                    }
-                }.start();
-
-
-                /*final BlockingQueue<String> queue = new LinkedBlockingDeque<>();
-                Thread t = new Thread() {
-                    public void run() {
-                        try {
-                            for (String line; (line = reader.readLine()) != null;) {
-                                Log.d("INPUT LINE", "line: " + line);
-                                queue.put(line);
-                            }
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
+                int readByte = 1;
+                Callable<Integer> readTask = new Callable<Integer>() {
+                    @Override
+                    public Integer call() throws Exception {
+                        Log.d("READER", "callable call() has benn called");
+                        return reader.read(test_buf);
                     }
                 };
-                t.start();
-                for (;;) {
-                    String line = queue.poll();
-                    if (line != null) {
-                        Log.d("LINE", "no null line: " + line);
-                    } else if (!t.isAlive()) {
+                while (readByte >= 0) {
+                    Future<Integer> future = executor.submit(readTask);
+                    try {
+                        Log.d("READER", "inside try");
+                        readByte = future.get(500, TimeUnit.MILLISECONDS);
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();
+                    } catch (TimeoutException e) {
+                    } catch (InterruptedException e) {
+
+                    }
+                    if (readByte > 1) {
+                        Log.d("READER", "read: " + readByte + ". Able to read input");
+                        isReading = true;
+                        break;
+                    } else {
+                        Log.d("READER", "nothing to read. Unable to read input");
+                        isReading = false;
                         break;
                     }
                 }
+                Log.d("READER", "Out of while loop");
 
-                 Log.d("READER", "Done with");*/
-
-
-
-               /* PushbackInputStream pushbackInputStream = new PushbackInputStream(p.getInputStream());
-                int b;
-                b = pushbackInputStream.read();
-                if (b == -1) {
-                    Log.d("PUSHBACKINPUT", "nothing to read");
+                if (!isReading) {
+                    //isError = true;
+                    Log.d("READER", "Nothing to read. Closing reader, destroying process, exiting iperf task");
+                    Log.d("READER", "About to call cancel");
+                    publishProgress("error");
                 }
-                pushbackInputStream.unread(b);*/
-
-/*
-
-                long startTime = System.currentTimeMillis();
-                do {
-                    Log.d("TIMER", "About to read");
-                    if (reader.read(test_buf) > 0) isReading = true;
-                    Log.d("TIMER", "Past read, setting bool to true");
-                } while ((System.currentTimeMillis() - startTime) <= 3000);
-                Log.d("TIMER", "timer has finished");*/
-
-                //  if (reader.read(buffer) > 0) {
-              //      Log.d("WHILE", "While condition is true");
-              //  }
-              //  else {
-              //      Log.d("WHILE", "While condition is false");
-              //  }
-               /* if (reader.ready()) Log.d("IPERF WHILE LOOP", "reader ready");
                 else {
-                    Log.d("IPERF WHILE LOOP", "reader not ready. Exiting iperf execution...");
+                    Log.d("IPERF WHILE LOOP", "right before while loop to read");
+                    while ((read = reader.read(buffer)) != -1) {
+                        output.append(buffer, 0, read);
+                        publishProgress(output.toString());
+                        output.delete(0, output.length());
+                    }
+                    Log.d("IPERF EXECUTION", "iperf done, closing reader and destroying process");
                     reader.close();
                     p.destroy();
-                    Log.d("IPERF WHILE LOOP", "destroyed processs and closed reader");
-                    isError = true;
-                    return null;
-                }*/
-
-
-
-               /* ExecutorService executorService = Executors.newFixedThreadPool(2);
-
-               try {
-                   int readByte = 1;
-                   Callable<Integer> readTask = new Callable<Integer>() {
-                       @Override
-                       public Integer call() throws Exception {
-                           return p.getInputStream().read();
-                       }
-                   };
-                   while (readByte >= 0) {
-                       Future<Integer> future = executorService.submit(readTask);
-                       try {
-                           readByte = future.get(3000, TimeUnit.SECONDS);
-                       } catch (InterruptedException e) {
-
-                       } catch (ExecutionException ee) {
-
-                       }
-                       if (readByte >= 0)
-                           System.out.println("Read: " + readByte);
-                   }
-               } catch (TimeoutException e) {
-                   Log.d("TIMEOUT", "Timeout called");
-               }
-*/
-
-
-               /* URL url = new URL("http://www.smartrg.com/");
-                URLConnection urlConnection = url.openConnection();
-                urlConnection.setReadTimeout(3000);
-                try {
-                    int n = reader.read(buffer);
-                    Log.d("READER", "read is working");
-                    isCorrectIP = true;
-                } catch (SocketTimeoutException e) {
-                    if (isCorrectIP) {
-                        Log.d("TIMEOUT OCCURS", "ip is correct. Shouldnt really be here");
-                    }
-                    else {
-                        Log.d("TIMEOUT OCCURS", "ip is wrong. Exiting...");
-                    }
-                }*/
-
-               /* Looper.prepare();
-                Log.d("HANDLER", "before Handler is made...");
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        Log.d("HANDLER", "Handler running...");
-                        try {
-                            Log.d("READER", "about to try to read");
-                            reader.read(test_buf);
-                            isReading = true;
-                            Log.d("HANDLER", "isReading set to true");
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }, 3000);
-                Log.d("HANDLER", "Handler finished!");
-
-
-                if (isReading) {
-                    Log.d("READER", "Able to read!");
                 }
-                else Log.d("READER", "Unable to read :(");*/
-
-               /* try {
-                    Log.d("SOCKET", "inside try block");
-                    //Socket socket = new Socket();
-                    //socket.connect(new InetSocketAddress((""), 3000));
-                    int i = reader.read(test_buf);
-                    Log.d("SOCKET", "past the blocking read call!");
-                    isReading = true;
-                    URL url = new URL("http://50.63.66.138:1044/update");
-                    URLConnection urlConnection = url.openConnection();
-                    urlConnection.setConnectTimeout(3000);
-                    urlConnection.connect();
-                    Log.d("SOCKET", "after connect line");
-                } catch (SocketTimeoutException e) {
-                    Log.d("SOCKET", "socket timeout exception!");
-                }
-
-                if (isReading) Log.d("READER", "Able to read!");
-                else Log.d("READER", "Can't read :(");*/
-
-                Log.d("IPERF WHILE LOOP", "right before while loop");
-                while((read = reader.read(buffer)) != -1) {
-               // while(reader.ready()) {
-                    //read = reader.read(buffer);
-                   // Log.d("IPERF WHILE LOOP", "in while loop");
-                    output.append(buffer, 0, read);
-                    publishProgress(output.toString());
-                    output.delete(0, output.length());
-                }
-                Log.d("IPERF EXECUTION", "iperf done, closing reader and destroying process");
-                reader.close();
-                p.destroy();
             }
             catch (IOException e) {
                 e.printStackTrace();
@@ -559,13 +416,14 @@ public class SpeedTestActivity extends AppCompatActivity {
             WifiInfo wifiInfo = wifiManager.getConnectionInfo();
             rssi.setText(wifiInfo.getRssi() + " dBm");
             current_link_speed.setText(max + " Mbits/sec");
-
         }
 
         @Override
         public void onPostExecute(String result) {
             //The running process is destroyed and system resources are freed.
+            Log.d("IPERF", "On pose execute");
             if (p != null) {
+                Log.d("IPERF", "process is not null!");
                 p.destroy();
 
                 try {
@@ -574,12 +432,12 @@ public class SpeedTestActivity extends AppCompatActivity {
 
                     e.printStackTrace();
                 }
-                if (isError) {
-                    Toast.makeText(getApplicationContext(), "ERROR! Verify IP is correct and WiFi is connected and try again", Toast.LENGTH_LONG).show();
-                }
-                else Toast.makeText(getApplicationContext(), "Test has finished!", Toast.LENGTH_LONG).show();
-                //  button.setText("TEST");
             }
+            if (isError) {
+                Log.d("IPERF", "iserror is true");
+                Toast.makeText(getApplicationContext(), "ERROR! Verify Wifi is connected and device IP is correct and try again", Toast.LENGTH_SHORT).show();
+            }
+            else Toast.makeText(getApplicationContext(), "Test has finished!", Toast.LENGTH_SHORT).show();
         }
     }
 }
