@@ -146,6 +146,8 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_heat_map);
+
+        // setup the toolbar with colors, icons, etc.
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -154,10 +156,11 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
         getSupportActionBar().setHomeAsUpIndicator(upArrow);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
 
-
+        // set up google maps
         mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
+        // check for location permission
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MY_REQUEST);
@@ -170,13 +173,13 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
             mGoogleApiClient.connect();
         }
 
+        // initialize data structures
         mTestPinList = new ArrayList<>();
         mCurrentHeatMap = new HeatMap();
         mTestMarkerList = new ArrayList<>();
         wifiManager = (WifiManager)getApplicationContext().getSystemService(WIFI_SERVICE);
         WifiInfo wifiInfo = wifiManager.getConnectionInfo();
         mRouterMAC = wifiInfo.getBSSID();
-
 
         // Initialize click listeners for FAB main menu
         fab_general_menu = (FloatingActionMenu) findViewById(R.id.fab_menu);
@@ -249,10 +252,7 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
             @Override
             public void onClick(View v) {
                 fab_test_menu.close(true);
-                //mTestPinList.add(new WeightedLatLng(currentPinLocation, 0.5));
                 initIperfHM();
-                //addHeatMap();
-                //addHeatMap3();
                 fab_test_menu.animate().translationY(fab_general_menu.getHeight()).setInterpolator(new LinearInterpolator()).start();
                 fab_general_menu.animate().translationY(0).setInterpolator(new LinearInterpolator()).start();
             }
@@ -270,14 +270,13 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
         });
 
 
-        // loading a heat map case
+        // try to get info if loading a heat map case
         isLoading = getIntent().getBooleanExtra("load", false);
         pos = getIntent().getIntExtra("pos", 0);
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-
         if (requestCode == 1) {
             if(resultCode == Activity.RESULT_OK){
                 ip =data.getStringExtra("ip");
@@ -294,11 +293,10 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
 
     @Override
     public void onBackPressed() {
-        // Do Here what ever you want do on back press;
         Log.d("BACK PRESSED", "(Physical) phone back button pressed!");
         finish();
-        //NavUtils.navigateUpFromSameTask(this);
     }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -313,18 +311,16 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
                 // selected the save option,  should pop up a dialog asking to confirm save
                 new SaveHeatMapAsync().execute("");
                 return true;
-
             case R.id.action_settings:
-                // seleced the other options drop down menu
+                // selected the settings option, open new Settings Activity
                 Intent intent = new Intent(HeatMapActivity.this, HeatMapSettingsActivity.class);
                 startActivityForResult(intent, 1);
                 return true;
-
             case android.R.id.home:
+                // selected back button
                 Log.d("BACK PRESSED", "back pressed from toolbar");
                 onBackPressed();
                 return true;
-
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -335,26 +331,22 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
         mMap = googleMap;
         mMap.getUiSettings().setCompassEnabled(false);
         mMap.getUiSettings().setMapToolbarEnabled(false);
-
-
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           String permissions[], int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
         switch (requestCode) {
             case MY_REQUEST: {
                 // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    // permission was granted, yay! Do the
-                    // contacts-related task you need to do.
-                    //  permSet = true;
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // permission was granted, yay!
                     LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
                     String provider = locationManager.getBestProvider(new Criteria(), true);
-                    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, HeatMapActivity.this);
-                    buildGoogleApiClient();
-                    mGoogleApiClient.connect();
+                    if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, HeatMapActivity.this);
+                        buildGoogleApiClient();
+                        mGoogleApiClient.connect();
+                    }
                 } else {
                     // permission denied, boo! Disable the
                     // functionality that depends on this permission.
@@ -367,6 +359,9 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
         }
     }
 
+    /**
+     * Creates a new instance of Google API client
+     */
     protected synchronized void buildGoogleApiClient() {
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
@@ -375,6 +370,12 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
                 .build();
     }
 
+    /**
+     * Method to do something when user location is changed
+     *  - gets called often (like 1 per sec)
+     * @param location
+     *  - Location object containing new latitiude and longitude
+     */
     @Override
     public void onLocationChanged(Location location) {
         // if (marker != null) {
@@ -384,6 +385,9 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
         // marker = mMap.addMarker(new MarkerOptions().position(latLng).title("My location").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_man_location)));
     }
 
+    /**
+     * Connect to Google API client on start
+     */
     @Override
     protected void onStart() {
         super.onStart();
@@ -394,6 +398,9 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
             return;
     }
 
+    /**
+     * Disconnect from Google API client on stop
+     */
     @Override
     protected void onStop() {
         super.onStop();
@@ -404,23 +411,35 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
             return;
     }
 
+    /**
+     * Do something on activity pause
+     */
     @Override
     protected  void onPause() {
         super.onPause();
     }
 
+    /**
+     * Called when Google API client is successfully connected
+     * @param connectionHint
+     * Contains information about the connection
+     */
     @Override
     public void onConnected(Bundle connectionHint) {
         Log.d(TAG, "Connected to GoogleApiClient");
-        mLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-        lat = mLocation.getLatitude();
-        lon = mLocation.getLongitude();
-        Log.d(TAG, "lat :" + mLocation.getLatitude() + " lon: " + mLocation.getLongitude());
-        //mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(lat, lon), 19.6f));
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(lat, lon), 20.8f));
-        // marker = mMap.addMarker(new MarkerOptions().position(new LatLng(lat, lon)).title("My location").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_man_location)));
 
-        // loading a heat map case
+        // Get current location
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            mLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+            lat = mLocation.getLatitude();
+            lon = mLocation.getLongitude();
+            Log.d(TAG, "lat :" + mLocation.getLatitude() + " lon: " + mLocation.getLongitude());
+        }
+
+        // update camera to zoom in closer
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(lat, lon), 20.8f));
+
+        // Loading a heatmap case
         if (isLoading) {
             Log.d("LOAD HEAT MAP", "loading a heat map condition, displying now...");
             if (pos == 0) addHeatMapGood();
@@ -428,11 +447,13 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
             fab_general_menu.setVisibility(View.INVISIBLE);
         }
 
-
+        // Click listener for the map when dropping pins
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
                 fab_general_menu.close(true);
+
+                // case for placing a test point
                 if (isPlacingPin) {
                     mCurrentTestPoint = new TestPoint(latLng.latitude, latLng.longitude);
                     MarkerOptions markerOptions = new MarkerOptions().position(new LatLng(latLng.latitude, latLng.longitude)).title("Test Point ").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
@@ -446,6 +467,7 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
                     fab_test_menu.animate().translationY(0).setInterpolator(new LinearInterpolator()).start();
 
                 }
+                // case for placing a router point
                 else if (isPlacingRouter) {
                     mCurrentRouterPoint = new RouterPoint(latLng.latitude, latLng.longitude);
                     MarkerOptions markerOptions = new MarkerOptions().position(new LatLng(latLng.latitude, latLng.longitude)).title("Router").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW));
@@ -456,11 +478,11 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
                     isPlacingRouter = false;
                     hasRouterBeenPlaced = true;
                     new initializeRouterBaseRssi().execute("");
-
                 }
             }
         });
 
+        // Touch listener for Google map to handle zooming
         mMap.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
             @Override
             public void onCameraChange(CameraPosition cameraPosition) {
@@ -468,6 +490,7 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
             }
         });
 
+        // Click listener for test/router pins currently on the map
         mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(Marker marker) {
@@ -476,6 +499,11 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
         });
     }
 
+    /**
+     * Called when failed connection to Google API client occurs
+     * @param result
+     * Contains the result information for failed connection
+     */
     @Override
     public void onConnectionFailed(ConnectionResult result) {
         // Refer to the javadoc for ConnectionResult to see what error codes might be returned in
@@ -483,32 +511,40 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
         Log.d(TAG, "Connection failed: ConnectionResult.getErrorCode() = " + result.getErrorCode());
     }
 
+    /**
+     * Connection to Google API client is suspended
+     * @param cause
+     * Reason for suspension
+     */
     @Override
     public void onConnectionSuspended(int cause) {
         // The connection to Google Play services was lost for some reason.
         Log.i(TAG, "Connection suspended");
-
         // onConnected() will be called again automatically when the service reconnects
     }
 
     @Override
     public void onProviderDisabled(String provider) {
+        Log.d("PROVIDER", "onProviderDisabled() called");
         //Toast.makeText(this.context, "GPS Disabled", Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void onProviderEnabled(String provider) {
+        Log.d("PROVIDER", "onProviderEnabled() called");
         //Toast.makeText(this.context, "GPS Enabled", Toast.LENGTH_SHORT).show();
-
     }
 
     @Override
     public void onStatusChanged(String provider, int status, Bundle bundle) {
-
+        Log.d("PROVIDER", "onStatusChanged() called");
     }
 
+    /**
+     * Temporary method that loads an example of a good result heatmap (mostly green) onto the map
+     *  - centers on map location
+     */
     private void addHeatMapGood() {
-
         Log.d("ADDED HEAT MAP", "addHeatMap called!");
         list = new ArrayList<>();
         list.add(new WeightedLatLng(new LatLng(34.409400564638496, -119.86459124833344), 1.0));
@@ -517,20 +553,10 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
         list.add(new WeightedLatLng(new LatLng(34.40931758166454, -119.86458085477352), 0.7));
         list.add(new WeightedLatLng(new LatLng(34.40929849556889, -119.86454866826534), 0.8));
         list.add(new WeightedLatLng(new LatLng(34.40934551927497, -119.86453525722028), 0.7));
-        //list.add(new WeightedLatLng(new LatLng(34.41473564384734, -119.85557265579702), 0.2));
-        //list.add(new WeightedLatLng(new LatLng(34.414703835746025, -119.85563535243273), 0.4));
-        //list.add(new WeightedLatLng(new LatLng(34.41464796409531, -119.85560383647679), 0.7));
-        //list.add(new WeightedLatLng(new LatLng(34.414672580817296, -119.85554683953524), 0.8));
-        //list.add(new WeightedLatLng(new LatLng(34.41465653845998, -119.85555287450552), 0.8));
-        //list.add(new WeightedLatLng(new LatLng(34.414737579992234, -119.85561087727548), 0.2));
-        //list.add(new WeightedLatLng(new LatLng(34.41471766535677, -119.8556024953723), 0.3));
-        //list.add(new WeightedLatLng(new LatLng(34.414709920775024, -119.85555790364742), 0.5));
 
         int[]colors = { Color.rgb(255, 0, 0), Color.rgb(102,255,0)};
         float[] startPoints = { 0.2f, 1f};
         Gradient gradient = new Gradient(colors, startPoints);
-
-
 
         provider = new HeatmapTileProvider.Builder().weightedData(list).radius(50).opacity(0.5).gradient(gradient).build();
         provider.setRadius(100);
@@ -542,7 +568,10 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
 
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(load_lat, load_lon), 20.8f));
     }
-
+    /**
+     * Temporary method that loads an example of a bad result heatmap (some red patches) onto the map
+     *  - centers on map location
+     */
     private void addHeatMapBad() {
 
         Log.d("ADDED HEAT MAP", "addHeatMap called!");
@@ -553,20 +582,10 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
         list.add(new WeightedLatLng(new LatLng(34.40931758166454, -119.86458085477352), 0.5));
         list.add(new WeightedLatLng(new LatLng(34.40929849556889, -119.86454866826534), 0.4));
         list.add(new WeightedLatLng(new LatLng(34.40934551927497, -119.86453525722028), 0.3));
-        //list.add(new WeightedLatLng(new LatLng(34.41473564384734, -119.85557265579702), 0.2));
-        //list.add(new WeightedLatLng(new LatLng(34.414703835746025, -119.85563535243273), 0.4));
-        //list.add(new WeightedLatLng(new LatLng(34.41464796409531, -119.85560383647679), 0.7));
-        //list.add(new WeightedLatLng(new LatLng(34.414672580817296, -119.85554683953524), 0.8));
-        //list.add(new WeightedLatLng(new LatLng(34.41465653845998, -119.85555287450552), 0.8));
-        //list.add(new WeightedLatLng(new LatLng(34.414737579992234, -119.85561087727548), 0.2));
-        //list.add(new WeightedLatLng(new LatLng(34.41471766535677, -119.8556024953723), 0.3));
-        //list.add(new WeightedLatLng(new LatLng(34.414709920775024, -119.85555790364742), 0.5));
 
         int[]colors = { Color.rgb(255, 0, 0), Color.rgb(102,255,0)};
         float[] startPoints = { 0.2f, 1f};
         Gradient gradient = new Gradient(colors, startPoints);
-
-
 
         provider = new HeatmapTileProvider.Builder().weightedData(list).radius(50).opacity(0.5).gradient(gradient).build();
         provider.setRadius(100);
@@ -579,6 +598,9 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(load_lat, load_lon), 20.8f));
     }
 
+    /**
+     * Async Task to Save the status of the current in-progress/finished heat map
+     */
     private class SaveHeatMapAsync extends AsyncTask<String, String, String> {
 
         ProgressDialog dialog;
@@ -614,11 +636,12 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
         protected void onPostExecute(String unused) {
             dialog.dismiss();
             Toast.makeText(getApplicationContext(), "Heat Map successfully saved!", Toast.LENGTH_SHORT).show();
-
         }
     }
 
-
+    /**
+     * Async Task to get average Rssi value at router location over 5 seconds (1 per sec)
+     */
     private class initializeRouterBaseRssi extends AsyncTask<String, String, String> {
         ProgressDialog dialog;
         Integer rssi;
@@ -661,7 +684,6 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
             int overllAvg = rssiAvg / rssiList.size();
             mCurrentRouterPoint.setRssi(-overllAvg);
             Log.d("ROUTER INFO", "base router rssi: " + -overllAvg);
-           // Toast.makeText(getApplicationContext(), "base rssi: " + -overllAvg, Toast.LENGTH_SHORT).show();
 
             mCurrentHeatMap.addRouterPin(mCurrentRouterPoint);
             ArrayList<WeightedLatLng> testList = mCurrentHeatMap.createWeightedList();
@@ -679,8 +701,10 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
         }
     }
 
+    /**
+     * Async Task to load a heat map from backend
+     */
     private class LoadHeatMapAsync extends AsyncTask<String, String, String> {
-
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
@@ -702,7 +726,6 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
                 }
             }
             //HeatMapService();
-
             return null;
         }
 
@@ -787,7 +810,6 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
 
     public void initIperfHM() {
         WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-
         // get the device's ip address for use in iperf command
         if (wifiInfo != null) {
             //This should return the right IP address if DHCP is enabled
@@ -1020,8 +1042,6 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
             float[] startPoints = { 0.2f, 1f};
             Gradient gradient = new Gradient(colors, startPoints);
 
-
-
             provider = new HeatmapTileProvider.Builder().weightedData(testList).radius(50).opacity(0.5).gradient(gradient).build();
             //provider.setRadius(100);
             provider.setRadius(circle_radius);
@@ -1058,8 +1078,6 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
                 });
                 alertDialog.show();
             }
-
-
         }
 
         public void buildHeatmapPoint() {
@@ -1088,10 +1106,6 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
             //Log.d("JSON", heatmapPoint.toString());
             heatmapPointList.add(heatmapPoint);
         }
-
-
-
-
 
         public void buildHeatmap(ArrayList <JSONObject> heatmapPointList) {
             heatmap = new JSONObject();
