@@ -9,6 +9,7 @@ import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
@@ -51,12 +52,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -305,13 +308,58 @@ public class SpeedTestActivity extends AppCompatActivity {
                 final char[] test_buf = new char[4];
                 StringBuffer output = new StringBuffer();
 
-                PushbackInputStream pushbackInputStream = new PushbackInputStream(p.getInputStream());
+                Looper.prepare();
+                new CountDownTimer(3000, 1000) {
+                    public void onTick(long millisUntilFinished) {
+                        try {
+                            Log.d("TIMER", "on Tick called");
+                            int i = reader.read(test_buf);
+                            isReading = true;
+                            Log.d("TIMER", "isReading changed");
+                        } catch (IOException e) {
+
+                        }
+                    }
+                    public void onFinish() {
+                        Log.d("TIMER", "om Finish called");
+                    }
+                }.start();
+
+
+                /*final BlockingQueue<String> queue = new LinkedBlockingDeque<>();
+                Thread t = new Thread() {
+                    public void run() {
+                        try {
+                            for (String line; (line = reader.readLine()) != null;) {
+                                Log.d("INPUT LINE", "line: " + line);
+                                queue.put(line);
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                };
+                t.start();
+                for (;;) {
+                    String line = queue.poll();
+                    if (line != null) {
+                        Log.d("LINE", "no null line: " + line);
+                    } else if (!t.isAlive()) {
+                        break;
+                    }
+                }
+
+                 Log.d("READER", "Done with");*/
+
+
+
+               /* PushbackInputStream pushbackInputStream = new PushbackInputStream(p.getInputStream());
                 int b;
                 b = pushbackInputStream.read();
                 if (b == -1) {
                     Log.d("PUSHBACKINPUT", "nothing to read");
                 }
-                pushbackInputStream.unread(b);
+                pushbackInputStream.unread(b);*/
 
 /*
 
