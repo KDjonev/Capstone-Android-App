@@ -1082,7 +1082,6 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
 
         public void buildHeatmapPoint() {
             JSONObject heatmapPoint = new JSONObject();
-
             try {
                 heatmapPoint.put("latitude", pin_latitude);
                 heatmapPoint.put("longitude", pin_longitude);
