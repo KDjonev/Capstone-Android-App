@@ -149,8 +149,8 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
         mMapFragment.getMapAsync(this);
 
         // check for location permission
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            Log.d("PERMISSIONS", "Requesting Location permission!");
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MY_REQUEST);
         }
         else {
@@ -314,6 +314,7 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     // permission was granted, yay!
+                    Log.d("PERMISSIONS", "Permission Granted!");
                     LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
                     String provider = locationManager.getBestProvider(new Criteria(), true);
                     if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
@@ -324,6 +325,7 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
                 } else {
                     // permission denied, boo! Disable the
                     // functionality that depends on this permission.
+                    Log.d("PERMISSIONS", "Permission Denied!");
                     Toast.makeText(getApplicationContext(), "Allow location access to view map features", Toast.LENGTH_SHORT).show();
                 }
                 return;
@@ -337,6 +339,7 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
      * Creates a new instance of Google API client
      */
     protected synchronized void buildGoogleApiClient() {
+        Log.d("GOOGLE API CLIENT", "Builing API client. . .");
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
@@ -357,7 +360,7 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
     /**
      * Connect to Google API client on start
      */
-    @Override
+   /* @Override
     protected void onStart() {
         super.onStart();
         if(ContextCompat.checkSelfPermission(HeatMapActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
@@ -365,7 +368,7 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
         }
         else
             return;
-    }
+    }*/
 
     /**
      * Disconnect from Google API client on stop

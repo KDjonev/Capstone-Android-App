@@ -33,6 +33,7 @@
         <activity
             android:name=".Activities.MainActivity"
             android:label="@string/app_name"
+            android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -43,6 +44,7 @@
         <activity
             android:name=".Activities.DevicesActivity"
             android:label=""
+            android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
@@ -51,6 +53,7 @@
         <activity
             android:name=".Activities.HeatMapSelectActivity"
             android:label=""
+            android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
@@ -59,12 +62,14 @@
         <activity
             android:name=".Activities.HeatMapActivity"
             android:label=""
+            android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar">
 
         </activity>
         <activity
             android:name=".Activities.SpeedTestActivity"
             android:label="Speed Test"
+            android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
@@ -73,10 +78,12 @@
         <activity
             android:name=".Activities.IperfActivity"
             android:label="Iperf3"
+            android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".Activities.SettingsActivity"
             android:label="@string/title_activity_settings"
+            android:screenOrientation="portrait"
             android:parentActivityName=".Activities.MainActivity"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
@@ -86,6 +93,7 @@
         <activity
             android:name=".Activities.SpeedTestSettingsActivity"
             android:label=""
+            android:screenOrientation="portrait"
             android:parentActivityName=".Activities.SpeedTestActivity"
             android:theme="@style/AppTheme.Preferences">
             <meta-data
@@ -95,6 +103,7 @@
         <activity
             android:name=".Activities.HeatMapLoadActivity"
             android:label=""
+            android:screenOrientation="portrait"
             android:parentActivityName=".Activities.HeatMapSelectActivity"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
@@ -104,6 +113,7 @@
         <activity
             android:name=".Activities.HeatMapSettingsActivity"
             android:label=""
+            android:screenOrientation="portrait"
             android:parentActivityName=".Activities.HeatMapActivity"
             android:theme="@style/AppTheme.Preferences">
             <meta-data
