@@ -275,7 +275,6 @@ public class SpeedTestActivity extends AppCompatActivity {
                 if (!isReading) {
                     //isError = true;
                     Log.d("READER", "Nothing to read. Closing reader, destroying process, exiting iperf task");
-                    Log.d("READER", "About to call cancel");
                     publishProgress("error");
                 }
                 // Valid output, read all output from iperf, then close reader and destroy process
@@ -318,16 +317,11 @@ public class SpeedTestActivity extends AppCompatActivity {
             }
             // check if any error occurs
             if (outList.contains("error")) {
-                Log.d("ERROR", "Error found in iperf output! Exiting. . . ");
+                Log.d("IPERF ON PROG ERROR", "Error found in iperf output! Exiting. . . ");
                 isError = true;
-                try {
-                    reader.close();
-                    p.destroy();
-                    return;
-                } catch (IOException e) {
-                    Log.d("IOEXCEPTION", "IO exception thrown from onProgressUpdate in speedtest");
-                    e.printStackTrace();
-                }
+                //reader.close();
+                p.destroy();
+                return;
             }
 
             // parse the mbits/sec value from iperf output
@@ -367,7 +361,7 @@ public class SpeedTestActivity extends AppCompatActivity {
         @Override
         public void onPostExecute(String result) {
             //The running process is destroyed and system resources are freed.
-            Log.d("IPERF", "On pose execute");
+            Log.d("IPERF", "On post execute");
             if (p != null) {
                 Log.d("IPERF", "process is not null!");
                 p.destroy();

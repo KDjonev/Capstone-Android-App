@@ -20,16 +20,10 @@ import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.NavUtils;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.View;
-import android.support.design.widget.NavigationView;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
@@ -37,14 +31,9 @@ import android.view.MenuItem;
 import android.view.animation.LinearInterpolator;
 import android.widget.Toast;
 
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
 import com.github.clans.fab.FloatingActionButton;
 import com.github.clans.fab.FloatingActionMenu;
+
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
@@ -64,11 +53,9 @@ import com.google.maps.android.heatmaps.HeatmapTileProvider;
 import com.google.maps.android.heatmaps.WeightedLatLng;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
-import java.io.DataOutputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -76,9 +63,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -90,18 +75,29 @@ import com.smartrg.smartrgapp.R;
 
 public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
-    public GoogleMap mMap;
-    private MapFragment mapFragment;
+    private GoogleMap mMap;
+    private MapFragment mMapFragment;
+    protected GoogleApiClient mGoogleApiClient;
+    private HeatMap mHeatMap;
+    private TestPoint mCurrentTestPoint;
+    private RouterPoint mCurrentRouterPoint;
+
+    private boolean isPlacingTest = false;
+    private boolean isPlacingRouter = false;
+
+    private String mDeviceIp;
+    private String mDeviceMac;
+
     private final static int MY_REQUEST = 6;
-    protected  GoogleApiClient mGoogleApiClient;
+
+
     private double lat;
     private double lon;
     private Location mLocation;
     private Marker routerMarker, testMarker;
     private FloatingActionMenu fab_general_menu, fab_test_menu;
     private com.github.clans.fab.FloatingActionButton fab1, fab2, fab3, fab_test_1, fab_test_2;
-    private boolean isPlacingPin = false;
-    private boolean isPlacingRouter = false;
+
     private HeatmapTileProvider provider;
     private TileOverlay overlay;
     private ArrayList<WeightedLatLng> list, mDynamicList, mTestPinList;
@@ -110,20 +106,14 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
     private LatLng routerLoaction;
     private WifiManager wifiManager;
     private String ipAddress;
-    private IperfTaskHM iperfTask;
-    private double pin_latitude;
-    private double pin_longitude;
-    private double router_lat;
-    private double router_long;
+    private IperfTask iperfTask;
     private ArrayList<JSONObject> heatmapPointList = new ArrayList<JSONObject>();
     private JSONObject heatmap;
     private JSONArray routers;
     private JSONObject residence;
     private JSONObject save;
-    private HeatMap mCurrentHeatMap;
-    private TestPoint mCurrentTestPoint;
-    private RouterPoint mCurrentRouterPoint;
-    private String mRouterMAC;
+
+
     private String acct_num;
 
     private ArrayList<Marker> mTestMarkerList;
@@ -140,8 +130,6 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
     boolean isLoading;
     int pos;
 
-    double [] numbers = {1.0, 0.9, 0.8, 0.8, 0.5, 0.4, 0.2, 0.2, 0.2};
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -157,8 +145,8 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
         getSupportActionBar().setDisplayShowTitleEnabled(false);
 
         // set up google maps
-        mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
+        mMapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
+        mMapFragment.getMapAsync(this);
 
         // check for location permission
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
@@ -174,18 +162,18 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
         }
 
         // initialize data structures
-        mTestPinList = new ArrayList<>();
-        mCurrentHeatMap = new HeatMap();
-        mTestMarkerList = new ArrayList<>();
+        mHeatMap = new HeatMap();
         wifiManager = (WifiManager)getApplicationContext().getSystemService(WIFI_SERVICE);
         WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-        mRouterMAC = wifiInfo.getBSSID();
+        mDeviceMac = wifiInfo.getBSSID();
 
         // Initialize click listeners for FAB main menu
         fab_general_menu = (FloatingActionMenu) findViewById(R.id.fab_menu);
         fab1 = (com.github.clans.fab.FloatingActionButton) findViewById(R.id.menu_item1);
         fab2 = (com.github.clans.fab.FloatingActionButton) findViewById(R.id.menu_item2);
         fab3 = (com.github.clans.fab.FloatingActionButton) findViewById(R.id.menu_item3);
+
+        // place router pin
         fab1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -197,6 +185,7 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
                 Toast.makeText(getApplicationContext(), "Tap to place pin at router location", Toast.LENGTH_SHORT).show();
             }
         });
+        // place test point pin
         fab2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -208,18 +197,18 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
                     fab_general_menu.close(true);
                     if (isPlacingRouter) {
                         isPlacingRouter = false;
-                        isPlacingPin = true;
+                        isPlacingTest = true;
                     }
                     else {
-                        isPlacingPin = true;
+                        isPlacingTest = true;
                     }
-
                     fab_general_menu.animate().translationY(fab_general_menu.getHeight()).setInterpolator(new LinearInterpolator()).start();
                     fab_test_menu.animate().translationY(fab_general_menu.getHeight()).setInterpolator(new LinearInterpolator()).start();
                     Toast.makeText(getApplicationContext(), "Tap to place pin at test location", Toast.LENGTH_SHORT).show();
                 }
             }
         });
+        // toggle marker visibility
         fab3.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -239,7 +228,6 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
                     }
                     isMarkersVisible = true;
                 }
-
                 fab_general_menu.close(true);
             }
         });
@@ -248,15 +236,18 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
         fab_test_menu = (FloatingActionMenu) findViewById(R.id.fab_menu_test_pin);
         fab_test_1 = (FloatingActionButton) findViewById(R.id.menu_item_test_1);
         fab_test_2 = (FloatingActionButton) findViewById(R.id.menu_item_test_2);
+
+        // Begin test
         fab_test_1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 fab_test_menu.close(true);
-                initIperfHM();
+                initializeIperf();
                 fab_test_menu.animate().translationY(fab_general_menu.getHeight()).setInterpolator(new LinearInterpolator()).start();
                 fab_general_menu.animate().translationY(0).setInterpolator(new LinearInterpolator()).start();
             }
         });
+        // Cancel test
         fab_test_2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -268,7 +259,6 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
                 fab_general_menu.animate().translationY(0).setInterpolator(new LinearInterpolator()).start();
             }
         });
-
 
         // try to get info if loading a heat map case
         isLoading = getIntent().getBooleanExtra("load", false);
@@ -309,7 +299,7 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
         switch (item.getItemId()) {
             case R.id.action_save_heat_map:
                 // selected the save option,  should pop up a dialog asking to confirm save
-                new SaveHeatMapAsync().execute("");
+               // new SaveHeatMapAsync().execute("");
                 return true;
             case R.id.action_settings:
                 // selected the settings option, open new Settings Activity
@@ -454,15 +444,14 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
                 fab_general_menu.close(true);
 
                 // case for placing a test point
-                if (isPlacingPin) {
+                if (isPlacingTest) {
                     mCurrentTestPoint = new TestPoint(latLng.latitude, latLng.longitude);
-                    MarkerOptions markerOptions = new MarkerOptions().position(new LatLng(latLng.latitude, latLng.longitude)).title("Test Point ").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
-                    Log.d(TAG, "New test pin drop lat: " + latLng.latitude + " lon: " + latLng.longitude);
-                    pin_latitude = latLng.latitude;
-                    pin_longitude = latLng.longitude;
+                    MarkerOptions markerOptions = new MarkerOptions().position(new LatLng(latLng.latitude, latLng.longitude))
+                            .title("Test Point").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+                    Log.d(TAG, "New test pin placed at lat: " + latLng.latitude + " lon: " + latLng.longitude);
                     testMarker = mMap.addMarker(markerOptions);
                     mTestMarkerList.add(testMarker);
-                    isPlacingPin = false;
+                    isPlacingTest = false;
                     fab_test_menu.setVisibility(View.VISIBLE);
                     fab_test_menu.animate().translationY(0).setInterpolator(new LinearInterpolator()).start();
 
@@ -470,10 +459,9 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
                 // case for placing a router point
                 else if (isPlacingRouter) {
                     mCurrentRouterPoint = new RouterPoint(latLng.latitude, latLng.longitude);
-                    MarkerOptions markerOptions = new MarkerOptions().position(new LatLng(latLng.latitude, latLng.longitude)).title("Router").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW));
-                    Log.d(TAG, "New router pin drop lat: " + latLng.latitude + " lon: " + latLng.longitude);
-                    router_lat = latLng.latitude;
-                    router_long = latLng.longitude;
+                    MarkerOptions markerOptions = new MarkerOptions().position(new LatLng(latLng.latitude, latLng.longitude))
+                            .title("Router").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW));
+                    Log.d(TAG, "New router pin placed at lat: " + latLng.latitude + " lon: " + latLng.longitude);
                     testMarker = mMap.addMarker(markerOptions);
                     isPlacingRouter = false;
                     hasRouterBeenPlaced = true;
@@ -541,6 +529,354 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
     }
 
     /**
+     * Method that tries to begin execution of iperf using runtime binary executable
+     *  - Checks if iperf binary exists, copies it in if it does not exist
+     *  - creates a new async task to read iperf output
+     */
+    public void initializeIperf() {
+        WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+        // get the device's ip address for use in iperf command
+        if (wifiInfo != null) {
+            //This should return the right IP address if DHCP is enabled
+            ipAddress = android.text.format.Formatter.formatIpAddress(wifiManager.getDhcpInfo().gateway);
+            //ipAddress = "192.168.0.2";
+            Log.d("INIT_IPERF", "This is your IP: " + ipAddress);
+            if (settingsChanged) {
+                ipAddress = ip;
+                Log.d("INIT_IPERF", "Settings changed! This is your new ip: " + ipAddress);
+            }
+        }
+        else {
+            Toast.makeText(getApplicationContext(), "Test failed! Verify your device is connected to wifi and try again", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        // copy the iperf executable into device's internal storage
+        InputStream inputStream;
+        try {
+            inputStream = getResources().getAssets().open("iperf9");
+        }
+        catch (IOException e) {
+            Log.d("Init Iperf error!", "Error occurred while accessing system resources, no iperf3 found in assets");
+            e.printStackTrace();
+            return;
+        }
+        try {
+            //Checks if the file already exists, if not copies it.
+            new FileInputStream("/data/data/com.smartrg.smartrgapp/iperf9");
+        }
+        catch (FileNotFoundException f) {
+            try {
+                OutputStream out = new FileOutputStream("/data/data/com.smartrg.smartrgapp/iperf9", false);
+                byte[] buf = new byte[1024];
+                int len;
+                while ((len = inputStream.read(buf)) > 0) {
+                    out.write(buf, 0, len);
+                }
+                inputStream.close();
+                out.close();
+                Process process =  Runtime.getRuntime().exec("/system/bin/chmod 744 /data/data/com.smartrg.smartrgapp/iperf9");
+                process.waitFor();
+            } catch (IOException e) {
+                e.printStackTrace();
+                return;
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                return;
+            }
+            IperfTask iperfTask = new IperfTask();
+            iperfTask.execute();
+            return;
+        }
+         IperfTask iperfTask = new IperfTask();
+        iperfTask.execute();
+    }
+
+    /**
+     * Async Task to communicate and receive output from iperf
+     *
+     */
+    private class IperfTask extends AsyncTask<Void, String, String> {
+        Process p = null;
+        String command = "iperf3 -c " + ipAddress;
+        String tcp_command = "iperf3 -c " + ipAddress + " -R -J -t 5";
+        String udp_command = "iperf3 -c " + ipAddress + " -u -J -t 5";
+        String[] which_command = {tcp_command, udp_command};
+        int max;
+
+        Double downstream = 0.0;
+        Double upstream = 0.0;
+        Integer retransmits = 0;
+        Double jitter = 0.0;
+        Double lost_percent = 0.0;
+        Integer rssi = 0;
+
+        @Override
+        protected void onPreExecute() {
+            testingDialog = new ProgressDialog(HeatMapActivity.this);
+            testingDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            testingDialog.setMessage("Test is in progress. . . ");
+            testingDialog.setCancelable(false);
+            testingDialog.show();
+            WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+            max = wifiInfo.getLinkSpeed();
+            Log.d("ON_PRE_EXECUTE", "link speed: " + max);
+        }
+
+        @Override
+        protected String doInBackground(Void... voids) {
+            if (!command.matches("(iperf3 )?((-[s,-server])|(-[c,-client] ([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5]))|(-[c,-client] \\w{1,63})|(-[h,-help]))(( -[f,-format] [bBkKmMgG])|(\\s)|( -[l,-len] \\d{1,5}[KM])|( -[B,-bind] \\w{1,63})|( -[r,-tradeoff])|( -[v,-version])|( -[N,-nodelay])|( -[T,-ttl] \\d{1,8})|( -[U,-single_udp])|( -[d,-dualtest])|( -[w,-window] \\d{1,5}[KM])|( -[n,-num] \\d{1,10}[KM])|( -[p,-port] \\d{1,5})|( -[L,-listenport] \\d{1,5})|( -[t,-time] \\d{1,8})|( -[i,-interval] \\d{1,4})|( -[u,-udp])|( -[b,-bandwidth] \\d{1,20}[bBkKmMgG])|( -[m,-print_mss])|( -[P,-parallel] d{1,2})|( -[M,-mss] d{1,20}))*")) {
+                Log.d("DO_IN_BACKGROUND", "Error! Invalid syntax for iperf3 command!");
+                publishProgress("Error: invalid syntax \n\n");
+                return null;
+            }
+            try {
+                for (String c : which_command) {
+                    String[] commands = c.split(" ");
+                    List<String> commandList = new ArrayList<>(Arrays.asList(commands));
+                    commandList.add(0, "/data/data/com.smartrg.smartrgapp/iperf9");
+                    p = new ProcessBuilder().command(commandList).redirectErrorStream(true).start();
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+                    int read;
+                    char[] buffer = new char[4096];
+                    StringBuffer output = new StringBuffer();
+                    while ((read = reader.read(buffer)) > 0) {
+                        output.append(buffer, 0, read);
+                        publishProgress(output.toString());
+                        output.delete(0, output.length());
+                    }
+                    reader.close();
+                    p.destroy();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+                Log.d("DO_IN_BACKGROUND", "Error! Failed retrieving iperf3 results");
+            }
+            return null;
+        }
+
+        @Override
+        public void onProgressUpdate(String... strings) {
+            JSONObject json = new JSONObject();
+            String protocol = null;
+            String output = strings[0];
+            try {
+                json = new JSONObject(output);
+                protocol = json.getJSONObject("start").getJSONObject("test_start").getString("protocol");
+            } catch (org.json.JSONException e) {
+                Log.d("JSONERROR", "Could not convert to JSONObject" + output);
+            }
+            if (protocol.equals("TCP")) {
+                try {
+                    JSONObject end = json.getJSONObject("end");
+                    Double downbits = end.getJSONObject("sum_sent").getDouble("bits_per_second");
+                    Double upbits = end.getJSONObject("sum_received").getDouble("bits_per_second");
+                    retransmits = end.getJSONObject("sum_sent").getInt("retransmits");
+                    downstream = downbits * Math.pow(10, -6);
+                    upstream = upbits * Math.pow(10, -6);
+                } catch (org.json.JSONException e) {
+                    Log.d("JSONERROR", "Could not convert to JSONObject: " + output);
+                }
+            }
+            if (protocol.equals("UDP")) {
+                try {
+                    JSONObject sum = json.getJSONObject("end").getJSONObject("sum");
+                    jitter = sum.getDouble("jitter_ms");
+                    lost_percent = sum.getDouble("lost_percent");
+                } catch (org.json.JSONException e) {
+                    Log.d("JSONERROR", "Could not convert to JSONObject" + output);
+                }
+            }
+            Log.d("ON_PROGRESS_UPDATE", "upstream: " + upstream.toString() + "\ndownstream: " + downstream.toString()
+                    + "\nretransmits: " + retransmits.toString() + "\njitter: " + jitter.toString() +
+                    "\nlost_percent: " + lost_percent.toString());
+        }
+
+
+
+        @Override
+        public void onPostExecute(String result) {
+            // get the rssi value at the end of iperf tests
+            rssi = wifiManager.getConnectionInfo().getRssi();
+
+            //The running process is destroyed and system resources are freed.
+            if (p != null) {
+                p.destroy();
+                try {
+                    p.waitFor();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                testingDialog.dismiss();
+                //Toast.makeText(getApplicationContext(), "test has finished", Toast.LENGTH_SHORT).show();
+            }
+            fancyShadingAlgorithm(rssi, downstream, upstream, jitter, lost_percent, retransmits);
+            //  buildHeatmapPoint();
+        }
+    }
+
+    /**
+     * Method to color in the test point based on iperf data output
+     *
+     * @param rssi RSSI value at test point
+     * @param up upstream in mbps/sec
+     * @param down downstream in mbps/sec
+     * @param jit jitter rate
+     * @param lost lost percentage rate
+     * @param ret number of retransmits
+     */
+    public void fancyShadingAlgorithm(Integer rssi, Double up, Double down, Double jit, Double lost, Integer ret) {
+        mCurrentTestPoint.setRssi(rssi);
+        mCurrentTestPoint.setDownstream(down);
+        mCurrentTestPoint.setUpstream(up);
+        mCurrentTestPoint.setJitter(jit);
+        mCurrentTestPoint.setLostPercentage(lost);
+        mCurrentTestPoint.setRetransmits(ret);
+
+        Integer base_rssi = mCurrentRouterPoint.getRssi();
+        Integer test_rssi = rssi;
+        if (test_rssi + 5 >= base_rssi) {
+            mCurrentTestPoint.setIntensity(1.0);
+        }
+        else if (test_rssi + 10 >= base_rssi) {
+            mCurrentTestPoint.setIntensity(0.8);
+        }
+        else if (test_rssi + 15 >= base_rssi) {
+            mCurrentTestPoint.setIntensity(0.7);
+        }
+        else if (test_rssi + 20 >= base_rssi) {
+            mCurrentTestPoint.setIntensity(0.6);
+        }
+        else if (test_rssi + 25 >= base_rssi) {
+            mCurrentTestPoint.setIntensity(0.5);
+        }
+        else if (test_rssi + 30 >= base_rssi) {
+            mCurrentTestPoint.setIntensity(0.4);
+        }
+        else if (test_rssi + 35 >= base_rssi) {
+            mCurrentTestPoint.setIntensity(0.3);
+        }
+        else if (test_rssi + 40 >= base_rssi) {
+            mCurrentTestPoint.setIntensity(0.2);
+        }
+        else if (test_rssi + 45 >= base_rssi) {
+            mCurrentTestPoint.setIntensity(0.0);
+        }
+
+        mHeatMap.addTestPin(mCurrentTestPoint);
+        ArrayList<WeightedLatLng> testList = mHeatMap.createWeightedList();
+
+        if (overlay != null) {
+            overlay.remove();
+        }
+        Log.d("ABOUT TO ADD HEATMAP", "test pin rssi: " + rssi);
+        Log.d("ABOUT TO ADD HEATMAP", "test pin intensity: " + mCurrentTestPoint.getIntensity());
+
+        int[]colors = { Color.rgb(255, 0, 0), Color.rgb(102,255,0)};
+        float[] startPoints = { 0.2f, 1f};
+        Gradient gradient = new Gradient(colors, startPoints);
+
+        provider = new HeatmapTileProvider.Builder().weightedData(testList).radius(50).opacity(0.5).gradient(gradient).build();
+        //provider.setRadius(100);
+        provider.setRadius(circle_radius);
+        overlay = mMap.addTileOverlay(new TileOverlayOptions().tileProvider(provider));
+
+        int rssi_limit = 75;
+
+        if (settingsChanged) {
+            if (bad_test_value.equals("")) {
+                bad_test_value = "75";
+            }
+            rssi_limit = Integer.parseInt(bad_test_value);
+            Log.d("HEAT_MAP_ALGORITHM", "rssi limit has been changed from default! It is now: " + rssi_limit);
+        }
+
+        if (test_rssi < -rssi_limit) {
+            final AlertDialog alertDialog = new AlertDialog.Builder(HeatMapActivity.this).create();
+            alertDialog.setTitle("Attention");
+            alertDialog.setIcon(R.mipmap.ic_warning_black_24dp);
+            alertDialog.setMessage("Your wifi signal at this spot is poor! You should think about adding an extender near this location.");
+            alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "Ok, check it out", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    //alertDialog.dismiss();
+                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.smartrg.com/we65ac"));
+                    startActivity(browserIntent);
+                }
+            });
+            alertDialog.setButton(DialogInterface.BUTTON_NEGATIVE, "No thanks", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    alertDialog.dismiss();
+                }
+            });
+            alertDialog.show();
+        }
+    }
+
+    /**
+     * Async Task to get average Rssi value at router location over 5 seconds (1 per sec)
+     */
+    private class initializeRouterBaseRssi extends AsyncTask<String, String, String> {
+        ProgressDialog dialog;
+        Integer rssi;
+        Integer rssiAvg = 0;
+        ArrayList<Integer> rssiList;
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            rssiList = new ArrayList<>();
+            dialog = new ProgressDialog(HeatMapActivity.this);
+            dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            dialog.setMessage("Collecting data points. . .");
+            dialog.setCancelable(false);
+            dialog.show();
+        }
+
+        @Override
+        protected String doInBackground(String... params) {
+            for(int i = 0; i < 5; i++) {
+                try {
+                    WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+                    rssi = wifiInfo.getRssi();
+                    rssiList.add(rssi);
+                    Log.d("ROUTER_RSSI_INIT", "rssi: " + rssi);
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+            for (int i = 0; i < rssiList.size(); i++) {
+                rssiAvg += Math.abs(rssiList.get(0));
+                Log.d("ROUTER_RSSI_INIT", "rssi avg: " + rssiAvg);
+            }
+            int overllAvg = rssiAvg / rssiList.size();
+            mCurrentRouterPoint.setRssi(-overllAvg);
+            Log.d("ROUTER INFO", "base router rssi: " + -overllAvg);
+
+            mHeatMap.addRouterPin(mCurrentRouterPoint);
+            ArrayList<WeightedLatLng> testList = mHeatMap.createWeightedList();
+
+            int[]colors = { Color.rgb(255, 0, 0), Color.rgb(102,255,0)};
+            float[] startPoints = { 0.2f, 1f};
+            Gradient gradient = new Gradient(colors, startPoints);
+
+            provider = new HeatmapTileProvider.Builder().weightedData(testList).radius(50).opacity(0.5).gradient(gradient).build();
+            //provider.setRadius(100);
+            provider.setRadius(circle_radius);
+            overlay = mMap.addTileOverlay(new TileOverlayOptions().tileProvider(provider));
+
+            dialog.dismiss();
+        }
+    }
+
+    /**
      * Temporary method that loads an example of a good result heatmap (mostly green) onto the map
      *  - centers on map location
      */
@@ -598,9 +934,7 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(load_lat, load_lon), 20.8f));
     }
 
-    /**
-     * Async Task to Save the status of the current in-progress/finished heat map
-     */
+   /*
     private class SaveHeatMapAsync extends AsyncTask<String, String, String> {
 
         ProgressDialog dialog;
@@ -639,71 +973,7 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
         }
     }
 
-    /**
-     * Async Task to get average Rssi value at router location over 5 seconds (1 per sec)
-     */
-    private class initializeRouterBaseRssi extends AsyncTask<String, String, String> {
-        ProgressDialog dialog;
-        Integer rssi;
-        Integer rssiAvg = 0;
-        ArrayList<Integer> rssiList;
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            rssiList = new ArrayList<>();
-            dialog = new ProgressDialog(HeatMapActivity.this);
-            dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-            dialog.setMessage("Collecting data points. . .");
-            dialog.setCancelable(false);
-            dialog.show();
-        }
 
-        @Override
-        protected String doInBackground(String... params) {
-            for(int i = 0; i < 5; i++) {
-                try {
-                    WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-                    rssi = wifiInfo.getRssi();
-                    rssiList.add(rssi);
-                    Log.d("ROUTER_RSSI_INIT", "rssi: " + rssi);
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(String s) {
-            super.onPostExecute(s);
-            for (int i = 0; i < rssiList.size(); i++) {
-                rssiAvg += Math.abs(rssiList.get(0));
-                Log.d("ROUTER_RSSI_INIT", "rssi avg: " + rssiAvg);
-            }
-            int overllAvg = rssiAvg / rssiList.size();
-            mCurrentRouterPoint.setRssi(-overllAvg);
-            Log.d("ROUTER INFO", "base router rssi: " + -overllAvg);
-
-            mCurrentHeatMap.addRouterPin(mCurrentRouterPoint);
-            ArrayList<WeightedLatLng> testList = mCurrentHeatMap.createWeightedList();
-
-            int[]colors = { Color.rgb(255, 0, 0), Color.rgb(102,255,0)};
-            float[] startPoints = { 0.2f, 1f};
-            Gradient gradient = new Gradient(colors, startPoints);
-
-            provider = new HeatmapTileProvider.Builder().weightedData(testList).radius(50).opacity(0.5).gradient(gradient).build();
-            //provider.setRadius(100);
-            provider.setRadius(circle_radius);
-            overlay = mMap.addTileOverlay(new TileOverlayOptions().tileProvider(provider));
-
-            dialog.dismiss();
-        }
-    }
-
-    /**
-     * Async Task to load a heat map from backend
-     */
     private class LoadHeatMapAsync extends AsyncTask<String, String, String> {
         @Override
         protected void onPreExecute() {
@@ -718,14 +988,14 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
         @Override
         protected String doInBackground(String... urls) {
             // getHeatMapPointsFromBackend();
-            for(int i = 0; i < 3; i++) {
+            for (int i = 0; i < 3; i++) {
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
-            //HeatMapService();
+            HeatMapService();
             return null;
         }
 
@@ -734,349 +1004,76 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
             // progressDialog.dismiss();
             Toast.makeText(getApplicationContext(), "Heat Map successfully loaded!", Toast.LENGTH_SHORT).show();
         }
-    }
 
-    private void HeatMapService() {
-        RequestQueue requestQueue = Volley.newRequestQueue(getApplicationContext());
-        String url = "http://cs1.smartrg.link:3000/heatmaps/1.json";
-        try {
-            StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
-                    new Response.Listener<String>() {
-                        @Override
-                        public void onResponse(String response) {
-                            try {
-                                JSONObject json = new JSONObject(response);
-                                String s = json.optString("created_at");
-                                Log.d("JSON IS HERE: ", s);
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    },
-                    new Response.ErrorListener() {
-                        @Override
-                        public void onErrorResponse(VolleyError error) {
-                            error.printStackTrace();
-                        }
-                    });
-            requestQueue.add(stringRequest);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void getHeatMapPointsFromBackend() {
-        RequestQueue requestQueue = Volley.newRequestQueue(getApplicationContext());
-        //String url = "http://cs1.smartrg.link:3000/heatmap_points/1.json";
-        final ArrayList<WeightedLatLng> testPointList = new ArrayList<>();
-        String url = "http://cs1.smartrg.link:3000/heatmap_points?id=1";
-        try {
-            StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
-                    new Response.Listener<String>() {
-                        @Override
-                        public void onResponse(String response) {
-                            try {
-                                HeatMap heatMap = new HeatMap();
-                                JSONObject json = new JSONObject(response);
-                                JSONArray points = json.getJSONArray("heatmap_points");
-                                for (int i = 0; i < points.length(); i++) {
-                                    JSONObject jsonObject = points.getJSONObject(i);
-                                    String id = jsonObject.optString("id");
-                                    String client_info = jsonObject.optString("client_info");
-                                    Log.d("FFFFFFFFFFFFFFFFFFF", "id: " + id + " client: " + client_info);
-                                    String lat = jsonObject.optString("latitude");
-                                    String lon = jsonObject.optString("longitude");
-                                    double latitude = Double.parseDouble(lat);
-                                    double longitude = Double.parseDouble(lon);
-                                    double intens = 0.5;
-                                    mDynamicList.add(new WeightedLatLng(new LatLng(latitude, longitude), intens));
+        private void HeatMapService() {
+            RequestQueue requestQueue = Volley.newRequestQueue(getApplicationContext());
+            String url = "http://cs1.smartrg.link:3000/heatmaps/1.json";
+            try {
+                StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+                        new Response.Listener<String>() {
+                            @Override
+                            public void onResponse(String response) {
+                                try {
+                                    JSONObject json = new JSONObject(response);
+                                    String s = json.optString("created_at");
+                                    Log.d("JSON IS HERE: ", s);
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
                                 }
-                            } catch (JSONException e) {
-                                e.printStackTrace();
                             }
-                        }
-                    },
-                    new Response.ErrorListener() {
-                        @Override
-                        public void onErrorResponse(VolleyError error) {
-                            error.printStackTrace();
-                        }
-                    });
-            requestQueue.add(stringRequest);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void initIperfHM() {
-        WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-        // get the device's ip address for use in iperf command
-        if (wifiInfo != null) {
-            //This should return the right IP address if DHCP is enabled
-            ipAddress = android.text.format.Formatter.formatIpAddress(wifiManager.getDhcpInfo().gateway);
-            //ipAddress = "192.168.0.2";
-            Log.d("INIT_IPERF", "This is your IP: " + ipAddress);
-            if (settingsChanged) {
-                ipAddress = ip;
-                Log.d("INIT_IPERF", "Settings changed! This is your new ip: " + ipAddress);
-            }
-        }
-        else {
-            Toast.makeText(getApplicationContext(), "Test failed! Verify your device is connected to wifi and try again", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        // copy the iperf executable into device's internal storage
-        InputStream inputStream;
-        try {
-            inputStream = getResources().getAssets().open("iperf9");
-        }
-        catch (IOException e) {
-            Log.d("Init Iperf error!", "Error occurred while accessing system resources, no iperf3 found in assets");
-            e.printStackTrace();
-            return;
-        }
-        try {
-            //Checks if the file already exists, if not copies it.
-            new FileInputStream("/data/data/com.smartrg.smartrgapp/iperf9");
-        }
-        catch (FileNotFoundException f) {
-            try {
-                OutputStream out = new FileOutputStream("/data/data/com.smartrg.smartrgapp/iperf9", false);
-                byte[] buf = new byte[1024];
-                int len;
-                while ((len = inputStream.read(buf)) > 0) {
-                    out.write(buf, 0, len);
-                }
-                inputStream.close();
-                out.close();
-                Process process =  Runtime.getRuntime().exec("/system/bin/chmod 744 /data/data/com.smartrg.smartrgapp/iperf9");
-                process.waitFor();
-            } catch (IOException e) {
+                        },
+                        new Response.ErrorListener() {
+                            @Override
+                            public void onErrorResponse(VolleyError error) {
+                                error.printStackTrace();
+                            }
+                        });
+                requestQueue.add(stringRequest);
+            } catch (Exception e) {
                 e.printStackTrace();
-                return;
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-                return;
             }
-
-            iperfTask = new IperfTaskHM();
-            iperfTask.execute();
-            return;
         }
 
-        iperfTask = new IperfTaskHM();
-        iperfTask.execute();
-    }
-
-    private class IperfTaskHM extends AsyncTask<Void, String, String> {
-        Process p = null;
-        String command = "iperf3 -c " + ipAddress;
-        String tcp_command = "iperf3 -c " + ipAddress + " -R -J -t 5";
-        String udp_command = "iperf3 -c " + ipAddress + " -u -J -t 5";
-        String[] which_command = {tcp_command, udp_command};
-        int max;
-
-        Double downstream = 0.0;
-        Double upstream = 0.0;
-        Integer retransmits = 0;
-        Double jitter = 0.0;
-        Double lost_percent = 0.0;
-        Integer rssi = 0;
-
-        @Override
-        protected void onPreExecute() {
-            testingDialog = new ProgressDialog(HeatMapActivity.this);
-            testingDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-            testingDialog.setMessage("Test is in progress. . . ");
-            testingDialog.setCancelable(false);
-            testingDialog.show();
-            WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-            max = wifiInfo.getLinkSpeed();
-            Log.d("ON_PRE_EXECUTE", "link speed: " + max);
-        }
-
-        @Override
-        protected String doInBackground(Void... voids) {
-            if (!command.matches("(iperf3 )?((-[s,-server])|(-[c,-client] ([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5]))|(-[c,-client] \\w{1,63})|(-[h,-help]))(( -[f,-format] [bBkKmMgG])|(\\s)|( -[l,-len] \\d{1,5}[KM])|( -[B,-bind] \\w{1,63})|( -[r,-tradeoff])|( -[v,-version])|( -[N,-nodelay])|( -[T,-ttl] \\d{1,8})|( -[U,-single_udp])|( -[d,-dualtest])|( -[w,-window] \\d{1,5}[KM])|( -[n,-num] \\d{1,10}[KM])|( -[p,-port] \\d{1,5})|( -[L,-listenport] \\d{1,5})|( -[t,-time] \\d{1,8})|( -[i,-interval] \\d{1,4})|( -[u,-udp])|( -[b,-bandwidth] \\d{1,20}[bBkKmMgG])|( -[m,-print_mss])|( -[P,-parallel] d{1,2})|( -[M,-mss] d{1,20}))*"))
-            {
-                Log.d("DO_IN_BACKGROUND", "Error! Invalid syntax for iperf3 command!");
-                publishProgress("Error: invalid syntax \n\n");
-                return null;
-            }
+        private void getHeatMapPointsFromBackend() {
+            RequestQueue requestQueue = Volley.newRequestQueue(getApplicationContext());
+            //String url = "http://cs1.smartrg.link:3000/heatmap_points/1.json";
+            final ArrayList<WeightedLatLng> testPointList = new ArrayList<>();
+            String url = "http://cs1.smartrg.link:3000/heatmap_points?id=1";
             try {
-                for (String c : which_command) {
-                    String[] commands = c.split(" ");
-                    List<String> commandList = new ArrayList<>(Arrays.asList(commands));
-                    commandList.add(0, "/data/data/com.smartrg.smartrgapp/iperf9");
-                    p = new ProcessBuilder().command(commandList).redirectErrorStream(true).start();
-                    //JsonReader reader = new JsonReader(new InputStreamReader(p.getInputStream()));
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
-                    int read;
-                    char[] buffer = new char[4096];
-                    StringBuffer output = new StringBuffer();
-                    while ((read = reader.read(buffer)) > 0) {
-                        output.append(buffer, 0, read);
-                        publishProgress(output.toString());
-                        output.delete(0, output.length());
-                    }
-                    reader.close();
-                    p.destroy();
-                }
-            }
-            catch (IOException e) {
+                StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+                        new Response.Listener<String>() {
+                            @Override
+                            public void onResponse(String response) {
+                                try {
+                                    HeatMap heatMap = new HeatMap();
+                                    JSONObject json = new JSONObject(response);
+                                    JSONArray points = json.getJSONArray("heatmap_points");
+                                    for (int i = 0; i < points.length(); i++) {
+                                        JSONObject jsonObject = points.getJSONObject(i);
+                                        String id = jsonObject.optString("id");
+                                        String client_info = jsonObject.optString("client_info");
+                                        Log.d("FFFFFFFFFFFFFFFFFFF", "id: " + id + " client: " + client_info);
+                                        String lat = jsonObject.optString("latitude");
+                                        String lon = jsonObject.optString("longitude");
+                                        double latitude = Double.parseDouble(lat);
+                                        double longitude = Double.parseDouble(lon);
+                                        double intens = 0.5;
+                                        mDynamicList.add(new WeightedLatLng(new LatLng(latitude, longitude), intens));
+                                    }
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        },
+                        new Response.ErrorListener() {
+                            @Override
+                            public void onErrorResponse(VolleyError error) {
+                                error.printStackTrace();
+                            }
+                        });
+                requestQueue.add(stringRequest);
+            } catch (Exception e) {
                 e.printStackTrace();
-                Log.d("DO_IN_BACKGROUND", "Error! Failed retrieving iperf3 results");
-            }
-            return null;
-        }
-
-        @Override
-        public void onProgressUpdate(String... strings) {
-            JSONObject json = new JSONObject();
-            String protocol = null;
-            String output = strings[0];
-            try {
-                json = new JSONObject(output);
-                protocol = json.getJSONObject("start").getJSONObject("test_start").getString("protocol");
-            } catch (org.json.JSONException e) {
-                Log.d("JSONERROR", "Could not convert to JSONObject" + output);
-            }
-            if (protocol.equals("TCP")) {
-                try {
-                    JSONObject end = json.getJSONObject("end");
-                    Double downbits = end.getJSONObject("sum_sent").getDouble("bits_per_second");
-                    Double upbits = end.getJSONObject("sum_received").getDouble("bits_per_second");
-                    retransmits = end.getJSONObject("sum_sent").getInt("retransmits");
-                    downstream = downbits * Math.pow(10, -6);
-                    upstream = upbits * Math.pow(10, -6);
-                } catch (org.json.JSONException e) {
-                    Log.d("JSONERROR", "Could not convert to JSONObject: " + output);
-                }
-            }
-            if (protocol.equals("UDP")) {
-                try {
-                    JSONObject sum = json.getJSONObject("end").getJSONObject("sum");
-                    jitter = sum.getDouble("jitter_ms");
-                    lost_percent = sum.getDouble("lost_percent");
-                } catch (org.json.JSONException e) {
-                    Log.d("JSONERROR", "Could not convert to JSONObject" + output);
-                }
-            }
-            Log.d("ON_PROGRESS_UPDATE", "upstream: " + upstream.toString() + "\ndownstream: " + downstream.toString()
-                    + "\nretransmits: " + retransmits.toString() + "\njitter: " + jitter.toString() +
-                    "\nlost_percent: " + lost_percent.toString());
-        }
-
-        @Override
-        public void onPostExecute(String result) {
-            // get the rssi value at the end of iperf tests
-            rssi = wifiManager.getConnectionInfo().getRssi();
-
-            //The running process is destroyed and system resources are freed.
-            if (p != null) {
-                p.destroy();
-                try {
-                    p.waitFor();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-
-                testingDialog.dismiss();
-                //Toast.makeText(getApplicationContext(), "test has finished", Toast.LENGTH_SHORT).show();
-            }
-            fancyShadingAlgorithm();
-            //  buildHeatmapPoint();
-        }
-
-
-        public void fancyShadingAlgorithm() {
-            mCurrentTestPoint.setRssi(rssi);
-            mCurrentTestPoint.setDownstream(downstream);
-            mCurrentTestPoint.setUpstream(upstream);
-            mCurrentTestPoint.setJitter(jitter);
-            mCurrentTestPoint.setLostPercentage(lost_percent);
-            mCurrentTestPoint.setRetransmits(retransmits);
-
-            Integer base_rssi = mCurrentRouterPoint.getRssi();
-            Integer test_rssi = rssi;
-            if (test_rssi + 5 >= base_rssi) {
-                mCurrentTestPoint.setIntensity(1.0);
-            }
-            else if (test_rssi + 10 >= base_rssi) {
-                mCurrentTestPoint.setIntensity(0.8);
-            }
-            else if (test_rssi + 15 >= base_rssi) {
-                mCurrentTestPoint.setIntensity(0.7);
-            }
-            else if (test_rssi + 20 >= base_rssi) {
-                mCurrentTestPoint.setIntensity(0.6);
-            }
-            else if (test_rssi + 25 >= base_rssi) {
-                mCurrentTestPoint.setIntensity(0.5);
-            }
-            else if (test_rssi + 30 >= base_rssi) {
-                mCurrentTestPoint.setIntensity(0.4);
-            }
-            else if (test_rssi + 35 >= base_rssi) {
-                mCurrentTestPoint.setIntensity(0.3);
-            }
-            else if (test_rssi + 40 >= base_rssi) {
-                mCurrentTestPoint.setIntensity(0.2);
-            }
-            else if (test_rssi + 45 >= base_rssi) {
-                mCurrentTestPoint.setIntensity(0.0);
-            }
-
-            mCurrentHeatMap.addTestPin(mCurrentTestPoint);
-            ArrayList<WeightedLatLng> testList = mCurrentHeatMap.createWeightedList();
-
-            if (overlay != null) {
-                overlay.remove();
-            }
-            Log.d("ABOUT TO ADD HEATMAP", "test pin rssi: " + rssi);
-            Log.d("ABOUT TO ADD HEATMAP", "test pin intensity: " + mCurrentTestPoint.getIntensity());
-
-           // Toast.makeText(getApplicationContext(), "rssi: " + rssi + " intensity: " + mCurrentTestPoint.getIntensity(), Toast.LENGTH_SHORT).show();
-
-            int[]colors = { Color.rgb(255, 0, 0), Color.rgb(102,255,0)};
-            float[] startPoints = { 0.2f, 1f};
-            Gradient gradient = new Gradient(colors, startPoints);
-
-            provider = new HeatmapTileProvider.Builder().weightedData(testList).radius(50).opacity(0.5).gradient(gradient).build();
-            //provider.setRadius(100);
-            provider.setRadius(circle_radius);
-            overlay = mMap.addTileOverlay(new TileOverlayOptions().tileProvider(provider));
-
-            int rssi_limit = 75;
-
-            if (settingsChanged) {
-                if (bad_test_value.equals("")) {
-                    bad_test_value = "75";
-                }
-                rssi_limit = Integer.parseInt(bad_test_value);
-                Log.d("HEAT_MAP_ALGORITHM", "rssi limit has been changed from default! It is now: " + rssi_limit);
-            }
-
-            if (test_rssi < -rssi_limit) {
-                final AlertDialog alertDialog = new AlertDialog.Builder(HeatMapActivity.this).create();
-                alertDialog.setTitle("Attention");
-                alertDialog.setIcon(R.mipmap.ic_warning_black_24dp);
-                alertDialog.setMessage("Your wifi signal at this spot is poor! You should think about adding an extender near this location.");
-                alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "Ok, check it out", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        //alertDialog.dismiss();
-                        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.smartrg.com/we65ac"));
-                        startActivity(browserIntent);
-                    }
-                });
-                alertDialog.setButton(DialogInterface.BUTTON_NEGATIVE, "No thanks", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        alertDialog.dismiss();
-                    }
-                });
-                alertDialog.show();
             }
         }
 
@@ -1106,7 +1103,7 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
             heatmapPointList.add(heatmapPoint);
         }
 
-        public void buildHeatmap(ArrayList <JSONObject> heatmapPointList) {
+        public void buildHeatmap(ArrayList<JSONObject> heatmapPointList) {
             heatmap = new JSONObject();
             JSONArray heatmap_points = new JSONArray();
             for (JSONObject point : heatmapPointList) {
@@ -1123,7 +1120,7 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
         }
 
         //TEMPORARY FUNCTION
-        public void makeFakeData(){
+        public void makeFakeData() {
             residence = new JSONObject();
             acct_num = "1234567";
             routers = new JSONArray();
@@ -1131,7 +1128,7 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
             try {
                 residence.put("address", "6745 Del Playa Dr");
                 residence.put("account_number", acct_num);
-                router.put("mac_address", mRouterMAC);
+                router.put("mac_address", mDeviceMac);
                 router.put("serial_number", "12345678");
                 router.put("router_model", "SR400ac");
                 router.put("name", "name");
@@ -1155,8 +1152,8 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
             Log.d("FULL JSON", save.toString());
         }
 
-        public void PostRequest(){
-            String url="http://cs1.smartrg.link:3000/process_residence_information";
+        public void PostRequest() {
+            String url = "http://cs1.smartrg.link:3000/process_residence_information";
             try {
                 URL object = new URL(url);
                 HttpURLConnection con = (HttpURLConnection) object.openConnection();
@@ -1164,15 +1161,15 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
                 con.setRequestProperty("Content-Type", "application/json");
                 con.setRequestMethod("POST");
                 con.connect();
-                DataOutputStream printout = new DataOutputStream(con.getOutputStream ());
+                DataOutputStream printout = new DataOutputStream(con.getOutputStream());
                 printout.writeBytes(save.toString());
-                printout.flush ();
-                printout.close ();
+                printout.flush();
+                printout.close();
 
-                int HttpResult=con.getResponseCode();
-                if (HttpResult==HttpURLConnection.HTTP_OK){
+                int HttpResult = con.getResponseCode();
+                if (HttpResult == HttpURLConnection.HTTP_OK) {
                     Log.d("HTTP", "HTTP_OK");
-                }else{
+                } else {
                     Log.d("HTTP", "Bad response: " + HttpResult);
                 }
             } catch (MalformedURLException e) {
@@ -1183,5 +1180,5 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
                 e.printStackTrace();
             }
         }
-    }
+    }*/
 }
