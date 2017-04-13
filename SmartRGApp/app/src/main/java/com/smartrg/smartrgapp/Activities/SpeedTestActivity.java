@@ -79,7 +79,10 @@ public class SpeedTestActivity extends AppCompatActivity {
                 if (!iperfRunning) {
                     iperfRunning = true;
                     initIperf();
-                } else return;
+                } else {
+                    Log.d("BUTTON START PRESS", "iperf running. Ignoring button press");
+                    return;
+                }
             }
         });
     }
@@ -209,6 +212,7 @@ public class SpeedTestActivity extends AppCompatActivity {
         protected void onPreExecute() {
             wifiInfo = wifiManager.getConnectionInfo();
             max = wifiInfo.getLinkSpeed();
+            colorArcProgressBar.setMaxValues(max);
             Log.d("IPERFTASK ONPRE_EXECUTE", "Connection link speed: " + max);
         }
 
@@ -222,9 +226,6 @@ public class SpeedTestActivity extends AppCompatActivity {
                 return null;
             }
             try {
-                /** TODO: Still need to handle case where router does not have iperf, or ip is completely wrong, or other weird cases where
-                 * does execute body of while loop but prints log before it. And not after while loop either
-                 */
                 Log.d("IPERF EXECUTION", "command is valid, trying to communicate with iperf...");
                 String[] commands = command.split(" ");
                 List<String> commandList = new ArrayList<>(Arrays.asList(commands));
@@ -351,7 +352,6 @@ public class SpeedTestActivity extends AppCompatActivity {
                     max = speed;
                 }
                 colorArcProgressBar.setCurrentValues(speed);
-                colorArcProgressBar.setMaxValues(max);
             }
             WifiInfo wifiInfo = wifiManager.getConnectionInfo();
             rssi.setText(wifiInfo.getRssi() + " dBm");
@@ -377,7 +377,10 @@ public class SpeedTestActivity extends AppCompatActivity {
                 Log.d("IPERF", "iserror is true");
                 Toast.makeText(getApplicationContext(), "ERROR! Verify Wifi is connected and device IP is correct and try again", Toast.LENGTH_SHORT).show();
             }
-            else Toast.makeText(getApplicationContext(), "Test has finished!", Toast.LENGTH_SHORT).show();
+            else {
+                Log.d("IPERF", "------Iperf completely done!------");
+                Toast.makeText(getApplicationContext(), "Test has finished!", Toast.LENGTH_SHORT).show();
+            }
         }
     }
 }

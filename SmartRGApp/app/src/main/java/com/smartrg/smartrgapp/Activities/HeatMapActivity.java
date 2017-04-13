@@ -212,22 +212,6 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
         fab3.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (isMarkersVisible) {
-                    for (int i = 0; i < mTestMarkerList.size(); i++) {
-                        mTestMarkerList.get(i).remove();
-                        Log.d("PINS", "Removed!");
-                    }
-                    isMarkersVisible = false;
-                }
-                else {
-                    for (int i = 0; i < mTestMarkerList.size(); i++) {
-                        LatLng latlng = mTestMarkerList.get(i).getPosition();
-                        MarkerOptions markerOptions = new MarkerOptions().position(latlng).title("Test Point").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
-                        testMarker = mMap.addMarker(markerOptions);
-                        Log.d("PINS", "Added!");
-                    }
-                    isMarkersVisible = true;
-                }
                 fab_general_menu.close(true);
             }
         });
@@ -276,7 +260,7 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
                 settingsChanged = true;
             }
             if (resultCode == Activity.RESULT_CANCELED) {
-                //Write your code if there's no result
+                // no result
             }
         }
     }
@@ -368,11 +352,6 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
      */
     @Override
     public void onLocationChanged(Location location) {
-        // if (marker != null) {
-        //     marker.remove();
-        // }
-        // LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-        // marker = mMap.addMarker(new MarkerOptions().position(latLng).title("My location").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_man_location)));
     }
 
     /**
@@ -417,7 +396,6 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
     @Override
     public void onConnected(Bundle connectionHint) {
         Log.d(TAG, "Connected to GoogleApiClient");
-
         // Get current location
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             mLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
@@ -425,10 +403,8 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
             lon = mLocation.getLongitude();
             Log.d(TAG, "lat :" + mLocation.getLatitude() + " lon: " + mLocation.getLongitude());
         }
-
         // update camera to zoom in closer
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(lat, lon), 20.8f));
-
         // Loading a heatmap case
         if (isLoading) {
             Log.d("LOAD HEAT MAP", "loading a heat map condition, displying now...");
@@ -436,40 +412,39 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
             else addHeatMapBad();
             fab_general_menu.setVisibility(View.INVISIBLE);
         }
-
         // Click listener for the map when dropping pins
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
                 fab_general_menu.close(true);
-
                 // case for placing a test point
                 if (isPlacingTest) {
                     mCurrentTestPoint = new TestPoint(latLng.latitude, latLng.longitude);
+                    // add marker to map
                     MarkerOptions markerOptions = new MarkerOptions().position(new LatLng(latLng.latitude, latLng.longitude))
                             .title("Test Point").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
                     Log.d(TAG, "New test pin placed at lat: " + latLng.latitude + " lon: " + latLng.longitude);
                     testMarker = mMap.addMarker(markerOptions);
-                    mTestMarkerList.add(testMarker);
-                    isPlacingTest = false;
+                    // animate to show test menu
                     fab_test_menu.setVisibility(View.VISIBLE);
                     fab_test_menu.animate().translationY(0).setInterpolator(new LinearInterpolator()).start();
-
+                    isPlacingTest = false;
                 }
                 // case for placing a router point
                 else if (isPlacingRouter) {
                     mCurrentRouterPoint = new RouterPoint(latLng.latitude, latLng.longitude);
+                    // add marker to map
                     MarkerOptions markerOptions = new MarkerOptions().position(new LatLng(latLng.latitude, latLng.longitude))
                             .title("Router").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW));
                     Log.d(TAG, "New router pin placed at lat: " + latLng.latitude + " lon: " + latLng.longitude);
                     testMarker = mMap.addMarker(markerOptions);
+                    // begin 5 second test at router location to get baseline rssi for future test points
                     isPlacingRouter = false;
                     hasRouterBeenPlaced = true;
                     new initializeRouterBaseRssi().execute("");
                 }
             }
         });
-
         // Touch listener for Google map to handle zooming
         mMap.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
             @Override
@@ -477,7 +452,6 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
                 Log.d("MAP_CAMERA_ZOOM", "Zoom: " + cameraPosition.zoom);
             }
         });
-
         // Click listener for test/router pins currently on the map
         mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
@@ -691,13 +665,10 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
                     "\nlost_percent: " + lost_percent.toString());
         }
 
-
-
         @Override
         public void onPostExecute(String result) {
             // get the rssi value at the end of iperf tests
             rssi = wifiManager.getConnectionInfo().getRssi();
-
             //The running process is destroyed and system resources are freed.
             if (p != null) {
                 p.destroy();
@@ -711,7 +682,6 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
                 //Toast.makeText(getApplicationContext(), "test has finished", Toast.LENGTH_SHORT).show();
             }
             fancyShadingAlgorithm(rssi, downstream, upstream, jitter, lost_percent, retransmits);
-            //  buildHeatmapPoint();
         }
     }
 
@@ -822,6 +792,7 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
         Integer rssi;
         Integer rssiAvg = 0;
         ArrayList<Integer> rssiList;
+
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
