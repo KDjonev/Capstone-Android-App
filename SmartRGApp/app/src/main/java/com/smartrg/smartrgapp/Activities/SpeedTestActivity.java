@@ -1,6 +1,7 @@
 package com.smartrg.smartrgapp.Activities;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
@@ -18,6 +19,7 @@ import android.view.MenuItem;
 import android.widget.TextView;
 import android.widget.Toast;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -49,6 +51,7 @@ public class SpeedTestActivity extends AppCompatActivity {
     private String ip;
     private boolean settingsChanged=false, iperfRunning = false;
     private BufferedReader reader;
+    private String storageLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,6 +88,10 @@ public class SpeedTestActivity extends AppCompatActivity {
                 }
             }
         });
+
+        // get path to device's internal storage location
+        storageLocation = getFilesDir().getAbsolutePath() + "/iperf9";
+        Log.d("STORAGE LOCATION", storageLocation);
     }
 
     @Override
@@ -117,21 +124,18 @@ public class SpeedTestActivity extends AppCompatActivity {
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             Intent intent = new Intent(SpeedTestActivity.this, SpeedTestSettingsActivity.class);
             startActivityForResult(intent, 1);
             return true;
         }
-
         return super.onOptionsItemSelected(item);
     }
 
     public void initIperf() {
         wifiManager = (WifiManager)getApplicationContext().getSystemService(WIFI_SERVICE);
         WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-
         // get the device's ip address for use in iperf command
         if (wifiInfo != null) {
             ipAddress = android.text.format.Formatter.formatIpAddress(wifiManager.getDhcpInfo().gateway);
@@ -148,7 +152,6 @@ public class SpeedTestActivity extends AppCompatActivity {
             Toast.makeText(getApplicationContext(), "Test failed! Verify your device is connected to wifi and try again", Toast.LENGTH_SHORT).show();
             return;
         }
-
         // copy the iperf executable into device's internal storage
         InputStream inputStream;
         try {
@@ -162,12 +165,12 @@ public class SpeedTestActivity extends AppCompatActivity {
         }
         try {
             //Checks if the file already exists, if not copies it.
-            new FileInputStream("/data/data/com.smartrg.smartrgapp/iperf9");
+            new FileInputStream(storageLocation);
         }
         // case where iperf does not exist in files. Should only happen on first install/run
         catch (FileNotFoundException f) {
             try {
-                OutputStream out = new FileOutputStream("/data/data/com.smartrg.smartrgapp/iperf9", false);
+                OutputStream out = new FileOutputStream(storageLocation, false);
                 byte[] buf = new byte[1024];
                 int len;
                 while ((len = inputStream.read(buf)) > 0) {
@@ -175,7 +178,7 @@ public class SpeedTestActivity extends AppCompatActivity {
                 }
                 inputStream.close();
                 out.close();
-                Process process =  Runtime.getRuntime().exec("/system/bin/chmod 744 /data/data/com.smartrg.smartrgapp/iperf9");
+                Process process =  Runtime.getRuntime().exec("/system/bin/chmod 744 " + storageLocation);
                 process.waitFor();
             } catch (IOException e) {
                 iperfRunning = false;
@@ -229,7 +232,7 @@ public class SpeedTestActivity extends AppCompatActivity {
                 Log.d("IPERF EXECUTION", "command is valid, trying to communicate with iperf...");
                 String[] commands = command.split(" ");
                 List<String> commandList = new ArrayList<>(Arrays.asList(commands));
-                commandList.add(0, "/data/data/com.smartrg.smartrgapp/iperf9");
+                commandList.add(0, storageLocation);
                 p = new ProcessBuilder().command(commandList).redirectErrorStream(true).start();
                 reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
                 int read;
