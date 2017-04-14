@@ -10,23 +10,17 @@ public class HeatMap {
     private String createdDate;
     private ArrayList<TestPoint> testPointList;
     private ArrayList<RouterPoint> routerPointList;
-    private int testPinCount;
-    private int routerPinCount;
 
     public HeatMap() {
         testPointList = new ArrayList<>();
         routerPointList = new ArrayList<>();
         createdDate = "2/25/2017";
-        testPinCount = 0;
-        routerPinCount = 0;
     }
 
     public HeatMap(String date) {
         testPointList = new ArrayList<>();
         routerPointList = new ArrayList<>();
         createdDate = date;
-        testPinCount = 0;
-        routerPinCount = 0;
     }
 
     public HeatMap(ArrayList<TestPoint> testList, ArrayList<RouterPoint> routerList, String date) {
@@ -37,22 +31,18 @@ public class HeatMap {
 
     public void addTestPin(TestPoint testPoint) {
         testPointList.add(testPoint);
-        testPinCount++;
     }
 
     public void addRouterPin(RouterPoint routerPoint) {
         routerPointList.add(routerPoint);
-        routerPinCount++;
     }
 
     public void removeTestPin(TestPoint testPoint) {
         routerPointList.remove(testPoint);
-        testPinCount--;
     }
 
     public void removeRouterPin(RouterPoint routerPoint) {
         routerPointList.remove(routerPoint);
-        routerPinCount--;
     }
 
     public String getCreatedDate() {

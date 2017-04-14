@@ -108,7 +108,6 @@ public class SpeedTestActivity extends AppCompatActivity {
             if(resultCode == Activity.RESULT_OK){
                 ip =data.getStringExtra("ip");
                 if (!ip.equals("")) {
-                    current_ip.setText(ip);
                     settingsChanged = true;
                 }
             }
@@ -145,6 +144,7 @@ public class SpeedTestActivity extends AppCompatActivity {
                 ipAddress = ip;
                 Log.d("INIT_IPERF", "Settings changed! Your manually entered ip is: " + ipAddress);
             }
+            current_ip.setText(ipAddress);
         }
         // no wifi info
         else {
@@ -259,7 +259,9 @@ public class SpeedTestActivity extends AppCompatActivity {
                     } catch (ExecutionException e) {
                         e.printStackTrace();
                     } catch (TimeoutException e) {
+                        e.printStackTrace();
                     } catch (InterruptedException e) {
+                        e.printStackTrace();
                     }
 
                     // handle if iperf output is valid
