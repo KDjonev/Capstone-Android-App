@@ -162,213 +162,9 @@ public class SettingsActivity extends AppCompatActivity {
         customTabsIntent.launchUrl(this, Uri.parse(url));
     }
 
-    // uses Socket.IO
-    /*public void connectWebSocket() {
-        final String TAG = "WEB_SOCKET";
-        // Create a trust manager that does not validate certificate chains
-        TrustManager[] trustAllCerts = new TrustManager[]{
-                new X509TrustManager() {
-                    public X509Certificate[] getAcceptedIssuers() {
-                        return null;
-                    }
-                    public void checkClientTrusted(X509Certificate[] certs, String authType) {
-                        System.out.println("checkClientTrusted =============");
-                    }
-                    public void checkServerTrusted(X509Certificate[] certs, String authType) {
-                        System.out.println("checkClientTrusted =============");
-                    }
-                }
-        };
-
-        // Install the all-trusting trust manager
-        try {
-            sslContext = SSLContext.getInstance("SSL");
-            sslContext.init(null, trustAllCerts, new SecureRandom());
-
-            //HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        } catch (KeyManagementException e) {
-            e.printStackTrace();
-        }
-
-        IO.setDefaultHostnameVerifier(new HostnameVerifier() {
-            @Override
-            public boolean verify(String hostname, SSLSession session) {
-                return true;
-            }
-        });
-
-
-        try {
-            IO.Options opts = new IO.Options();
-            //opts.sslContext = sslContext;
-            opts.secure = false;
-            Socket sock = IO.socket("http://192.168.1.1/websocket/", opts);
-            sock.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
-                @Override
-                public void call(Object... args) {
-                    Log.d(TAG, "onConnect");
-                }
-            }).on(Socket.EVENT_DISCONNECT, new Emitter.Listener() {
-                @Override
-                public void call(Object... args) {
-                    Log.d(TAG, "onDisconnect");
-
-                }
-            }).on(Socket.EVENT_ERROR, new Emitter.Listener() {
-                @Override
-                public void call(Object... args) {
-                    Log.d(TAG, "onError");
-
-                }
-            }).on("event", new Emitter.Listener() {
-                @Override
-                public void call(Object... args) {
-                    Log.d(TAG, "onEvent");
-
-                }
-            }).on(Socket.EVENT_CONNECT_ERROR, new Emitter.Listener() {
-                @Override
-                public void call(Object... args) {
-                    Log.d(TAG, "onConnectError! " + args[0].toString());
-                }
-            }).on(Socket.EVENT_CONNECT_TIMEOUT, new Emitter.Listener() {
-                @Override
-                public void call(Object... args) {
-                    Log.d(TAG, "onConnectTimeout " + args[0].toString());
-                }
-            });
-            Log.d(TAG, "trying to connect...");
-            sock.connect();
-
-            sock.io().on(Manager.EVENT_TRANSPORT, new Emitter.Listener() {
-                @Override
-                public void call(Object... args) {
-                    Transport transport = (Transport) args[0];
-                    transport.on(Transport.EVENT_ERROR, new Emitter.Listener() {
-                        @Override
-                        public void call(Object... args) {
-                            Exception e = (Exception) args[0];
-                            Log.e(TAG, "Transport error " + e);
-                            e.printStackTrace();
-                            e.getCause().printStackTrace();
-                        }
-                    });
-                }
-            });
-
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }*/
-
-
-
-    // uses autobahn
-    /*public void connectWebSocket() {
-        final String wsUri = "ws://192.168.1.1/websocket/";
-        final String TAG = "WEB_SOCKET";
-
-        try {
-            mConnection.connect(wsUri, new WebSocket.ConnectionHandler() {
-                @Override
-                public void onOpen() {
-                    Log.d(TAG, "onOpen");
-                    mConnection.sendTextMessage("hi");
-                    mConnection.sendTextMessage("yo");
-                }
-
-                @Override
-                public void onClose(int code, String reason) {
-                    Log.d(TAG, "onClose(), exit code: " + code + " ---> reason: " + reason);
-
-                }
-
-                @Override
-                public void onTextMessage(String payload) {
-                    Log.d(TAG, "onTextMessage: " + payload);
-
-                }
-
-                @Override
-                public void onRawTextMessage(byte[] payload) {
-                    Log.d(TAG, "onRawText");
-
-                }
-
-                @Override
-                public void onBinaryMessage(byte[] payload) {
-                    Log.d(TAG, "onOpen");
-
-                }
-            });
-        } catch (WebSocketException e) {
-            e.printStackTrace();
-        }
-    }*/
-
-
-    // uses socket.IO
-    /*public void connectWebSocket() {
-        final String TAG = "WEB_SOCKET";
-        try {
-            socket = IO.socket("http://192.182.1.1/websocket/");
-        }catch (URISyntaxException e) {
-            e.printStackTrace();
-        }
-        socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
-            @Override
-            public void call(Object... args) {
-                Log.d("Websocket", "connected");
-                socket.emit("foo", "hi");
-                //socket.disconnect();
-            }
-        }).on("foo", new Emitter.Listener() {
-            @Override
-            public void call(Object... args) {
-                Log.d("Websocket", "received");
-            }
-        }).on(Socket.EVENT_DISCONNECT, new Emitter.Listener() {
-            @Override
-            public void call(Object... args) {
-                Log.d("Websocket", "dis-connected");
-            }
-        });
-        socket.connect();
-    }*/
-
     // uses org.java.WebSocket
     public void connectWebSocket() {
         final String TAG = "WEB_SOCKET";
-        java.net.Socket socket = new java.net.Socket();
-        // Create a trust manager that does not validate certificate chains
-        TrustManager[] trustAllCerts = new TrustManager[]{
-                new X509TrustManager() {
-                    public X509Certificate[] getAcceptedIssuers() {
-                        return null;
-                    }
-                    public void checkClientTrusted(X509Certificate[] certs, String authType) {
-                        System.out.println("checkClientTrusted =============");
-                    }
-                    public void checkServerTrusted(X509Certificate[] certs, String authType) {
-                        System.out.println("checkClientTrusted =============");
-                    }
-                }
-        };
-
-        // Install the all-trusting trust manager
-        try {
-            sslContext = SSLContext.getInstance("SSL");
-            sslContext.init(null, trustAllCerts, new SecureRandom());
-
-            //HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        } catch (KeyManagementException e) {
-            e.printStackTrace();
-        }
 
         URI uri;
         try {
@@ -377,7 +173,6 @@ public class SettingsActivity extends AppCompatActivity {
             e.printStackTrace();
             return;
         }
-
         mWebSocketClient = new WebSocketClient(uri, new Draft_17()) {
 
             @Override
@@ -388,14 +183,13 @@ public class SettingsActivity extends AppCompatActivity {
                 Log.d(TAG, "Sent: " + message);
             }
 
-
             @Override
             public void onMessage(String s) {
                 Log.d(TAG, "received message: " + s);
                 String hex = s.substring(46);
               //  Log.d(TAG, "hex: " + hex);
                 String hexActual = hex.substring(0, hex.length() - 3);
-            //    Log.d(TAG, "hex: " + hexActual);
+              //   Log.d(TAG, "hex: " + hexActual);
                 String message = "{\"jsonrpc\":\"2.0\",\"id\":28,\"method\":\"call\",\"params\":[\"" + hexActual+ "\",\"/juci/wireless\",\"station\",{\"mac\":\"E8:50:8B:ED:A7:FA\" }]}";
                 mWebSocketClient.send(message);
                 Log.d(TAG, "Sent: " + message);
@@ -412,23 +206,7 @@ public class SettingsActivity extends AppCompatActivity {
             }
         };
 
-      /* try {
-            mWebSocketClient.setSocket(sslContext.getSocketFactory().createSocket());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }*/
-
         Log.d(TAG, "trying to connect...");
         mWebSocketClient.connect();
-
-
     }
-
-    public void sendMessage(View view) {
-        mWebSocketClient.send("");
-    }
-
-
-
-
 }
