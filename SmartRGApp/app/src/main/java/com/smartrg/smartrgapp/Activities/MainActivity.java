@@ -1,5 +1,6 @@
 package com.smartrg.smartrgapp.Activities;
 
+import android.app.admin.DevicePolicyManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -113,28 +114,9 @@ public class MainActivity extends AppCompatActivity {
             Log.d("WIFI INFO", "IP: " + wifiInfo.getIpAddress());
             Log.d("WIFI INFO", "Network ID: " + wifiInfo.getNetworkId());
             Log.d("WIFI INFO", "Frequency: " + wifiInfo.getFrequency());
-
-           // doInBack();
-            new NetworkTrafficTask(getApplicationContext()).execute();
-
-
+          //  doInBack();
+            //new NetworkTrafficTask(getApplicationContext()).execute();
         } else Log.d("WIFI INFO", "Wifi info is null!");
-
-
-    }
-
-    public void doInBack() {
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                wifiManager = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
-
-                wifiReceiver = new WifiReceiver();
-                registerReceiver(wifiReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
-                wifiManager.startScan();
-                doInBack();
-            }
-        }, 30000);
     }
 
     class WifiReceiver extends  BroadcastReceiver {
@@ -148,11 +130,25 @@ public class MainActivity extends AppCompatActivity {
             wifiList = wifiManager.getScanResults();
             for (int i = 0; i < wifiList.size(); i++) {
                 conns.add(wifiList.get(i).SSID);
-                Log.d("WIFI", "connection found for SSID: " + wifiList.get(i).SSID);
+                Log.d("WIFI", "connection found for SSID: " + wifiList.get(i).SSID + " BSSID: " + wifiList.get(i).BSSID);
             }
+            Log.d("WIFI", "--------- No more connections found ----------");
         }
     }
 
+    public void doInBack() {
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                wifiManager = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
+
+               // wifiReceiver = new WifiReceiver();
+                //registerReceiver(wifiReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
+                //wifiManager.startScan();
+                //doInBack();
+            }
+        }, 100);
+    }
 
     public static String getMacAddr() {
         try {
@@ -214,20 +210,28 @@ public class MainActivity extends AppCompatActivity {
 
                     for (int i =0; i < 255; i++) {
                         String testIP = prefix + String.valueOf(i);
+                        // Log.d(TAG, "testIP: " + testIP);
 
                         InetAddress address = InetAddress.getByName(testIP);
-                        boolean reachable = address.isReachable(10);
                         String hostName = address.getCanonicalHostName();
-                       // Log.d("NAME", "name: " + hostName);
+                        boolean reachable = address.isReachable(10);
+                        // Log.d("NAME", "name: " + hostName);
 
                         if (reachable) {
-                           // InetAddress ip = InetAddress.getLocalHost();
-                            NetworkInterface network = NetworkInterface.getByInetAddress(address);
-                            byte[] mac = network.getHardwareAddress();
+                             Log.d("NAME", "reachable name: " + hostName);
                             StringBuilder sb = new StringBuilder();
-                            for (int j = 0; j < mac.length; j++)
-                                sb.append(String.format("%02X%s", mac[j], (i < mac.length - 1) ? "-" : ""));
-
+                            InetAddress ip = address;
+                            NetworkInterface network = NetworkInterface.getByInetAddress(ip);
+                            if (network == null) {
+                                String s = getMacAddr();
+                                Log.d(TAG, "network null, mac: " + s);
+                            }
+                            else {
+                                byte[] mac = network.getHardwareAddress();
+                                Log.d("NAME", "network is not null. Getting MAC...");
+                                for (int j = 0; j < mac.length; j++)
+                                    sb.append(String.format("%02X%s", mac[j], (i < mac.length - 1) ? "-" : ""));
+                            }
                             Log.d(TAG, "Host: " + String.valueOf(hostName) + "(" + String.valueOf(testIP) + ") is reachable!");
                             Log.d(TAG, "MAC: " + sb.toString());
                             connectedDevices++;
@@ -236,11 +240,20 @@ public class MainActivity extends AppCompatActivity {
                     Log.d(TAG, "Scan complete! Number of connected devices: " + connectedDevices);
                 }
             } catch (Throwable t) {
-                Log.d(TAG, "Well thats not good...");
+                t.printStackTrace();
+                Log.d(TAG, "Well that's not good...");
             }
             return  null;
         }
 
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (wifiReceiver != null) {
+            unregisterReceiver(wifiReceiver);
+        }
     }
 
 }

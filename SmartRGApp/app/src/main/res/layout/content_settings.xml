@@ -9,7 +9,14 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context="capstone.cs189.com.smartnetwork.Activities.SettingsActivity"
     tools:showIn="@layout/activity_settings">
+
+    <Button
+        android:id="@+id/wps_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Begin WPS test"
+        android:layout_centerInParent="true"
+        />
 
 </RelativeLayout>

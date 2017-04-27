@@ -52,7 +52,7 @@ public class ColorArcProgressBar extends View {
 
     /** dimmensions for phone screen size **/
 
-    /*private float bgArcWidth = dipToPx(2);
+    private float bgArcWidth = dipToPx(2);
     private float progressWidth = dipToPx(10);
     private float textSize = dipToPx(60);
     private float hintSize = dipToPx(15);
@@ -61,10 +61,10 @@ public class ColorArcProgressBar extends View {
     private float longdegree = dipToPx(13);
     private float shortdegree = dipToPx(5);
     private final int DEGREE_PROGRESS_DISTANCE = dipToPx(8);
-*/
+
 
     /** dimmensions for tablet screen size **/
-    private float bgArcWidth = dipToPx(2);
+    /*private float bgArcWidth = dipToPx(2);
     private float progressWidth = dipToPx(10);
     private float textSize = dipToPx(100);
     private float hintSize = dipToPx(20);
@@ -72,7 +72,7 @@ public class ColorArcProgressBar extends View {
     private int aniSpeed = 1000;
     private float longdegree = dipToPx(13);
     private float shortdegree = dipToPx(5);
-    private final int DEGREE_PROGRESS_DISTANCE = dipToPx(8);
+    private final int DEGREE_PROGRESS_DISTANCE = dipToPx(8);*/
 
 
     private String hintColor = "#ffffff";

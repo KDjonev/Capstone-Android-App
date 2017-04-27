@@ -351,7 +351,7 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
      * Method to do something when user location is changed
      *  - gets called often (like 1 per sec)
      * @param location
-     *  - Location object containing new latitiude and longitude
+     *  - Location object containing new latitude and longitude
      */
     @Override
     public void onLocationChanged(Location location) {
