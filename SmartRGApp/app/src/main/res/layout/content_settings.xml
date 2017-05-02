@@ -15,8 +15,19 @@
         android:id="@+id/wps_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Begin WPS test"
-        android:layout_centerInParent="true"
+        android:text="Connect with WPS"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="50dp"
+        />
+
+    <Button
+        android:id="@+id/router_wps_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="WPS Router Button"
+        android:layout_below="@id/wps_button"
+        android:layout_marginTop="32dp"
+        android:layout_centerHorizontal="true"
         />
 
 </RelativeLayout>

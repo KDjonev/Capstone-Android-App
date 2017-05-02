@@ -3,9 +3,11 @@ package com.smartrg.smartrgapp.Activities;
 import android.Manifest;
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
@@ -15,10 +17,12 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
+import android.net.wifi.ScanResult;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
@@ -66,6 +70,8 @@ import java.io.OutputStream;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import com.smartrg.smartrgapp.Classes.TestPoint;
@@ -129,6 +135,12 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
 
     boolean isLoading;
     int pos;
+
+    WifiReceiver wifiReceiver;
+    private final Handler handler = new Handler();
+    StringBuilder stringBuilder = new StringBuilder();
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -607,6 +619,8 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
                 return null;
             }
             try {
+                registerWiFiSearchReceiver();
+
                 for (String c : which_command) {
                     String[] commands = c.split(" ");
                     List<String> commandList = new ArrayList<>(Arrays.asList(commands));
@@ -684,12 +698,13 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
                 testingDialog.dismiss();
                 //Toast.makeText(getApplicationContext(), "test has finished", Toast.LENGTH_SHORT).show();
             }
+
             fancyShadingAlgorithm(rssi, downstream, upstream, jitter, lost_percent, retransmits);
         }
     }
 
     /**
-     * Method to color in the test point based on iperf data output
+     * Method to color in the test point based on iperf3 data output
      *
      * @param rssi RSSI value at test point
      * @param up upstream in mbps/sec
@@ -849,6 +864,70 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
             dialog.dismiss();
         }
     }
+
+
+    public void registerWiFiSearchReceiver() {
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                wifiManager = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
+
+                wifiReceiver = new WifiReceiver();
+                registerReceiver(wifiReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
+                wifiManager.startScan();
+                //doInBack();
+            }
+        }, 100);
+    }
+
+    class WifiReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            ArrayList<String> conns = new ArrayList<>();
+            ArrayList<Float> sig_strength = new ArrayList<>();
+
+            stringBuilder = new StringBuilder();
+            List<ScanResult> wifiList;
+            wifiList = wifiManager.getScanResults();
+            for (int i = 0; i < wifiList.size(); i++) {
+                String net_id = wifiList.get(i).SSID;
+
+
+                if (conns.contains(net_id)) {
+                    Log.d("WIFI", "Duplicate SSID found -----> " + net_id);
+                    if (wifiList.get(i).frequency > 3000) conns.add(net_id + " (5Ghz)");
+                    else conns.add(net_id + " (2.4Ghz)");
+                }
+                else {
+                    if (wifiList.get(i).frequency > 3000) conns.add(net_id + " (5Ghz)");
+                    else conns.add(net_id + " (2.4Ghz)");
+                }
+
+                //conns.add(wifiList.get(i).SSID);
+                /*Log.d("WIFI", "-----> SSID: " + wifiList.get(i).SSID + ", BSSID: " + wifiList.get(i).BSSID
+                        + ", Signal: " + wifiList.get(i).level + ", CH: " + wifiList.get(i).channelWidth
+                        + ", Freq: " + wifiList.get(i).frequency + ", Capabilities: " + wifiList.get(i).capabilities );*/
+
+            }
+            /// Log.d("WIFI", "--------- No more connections found ----------");
+
+            Collections.sort(wifiList, new Comparator<ScanResult>() {
+                @Override
+                public int compare(ScanResult o1, ScanResult o2) {
+                    if (o1.level == o2.level) return 0;
+                    return o1.level < o2.level ? 1 : -1;
+                }
+            });
+            Log.d("WIFI", "---------- Top WiFi Connections ----------");
+            for (int k = 0; k < conns.size(); k++) {
+                Log.d("WIFI", "" + k + ". " + conns.get(k) + " ---> " + wifiList.get(k).level);
+            }
+            Log.d("WIFI", "---------- End ----------");
+            unregisterReceiver(wifiReceiver);
+        }
+    }
+
+
 
     /**
      * Temporary method that loads an example of a good result heatmap (mostly green) onto the map

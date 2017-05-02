@@ -33,6 +33,7 @@ import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -103,8 +104,6 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-
-
         wifiManager = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
         WifiInfo wifiInfo = wifiManager.getConnectionInfo();
         if (wifiInfo != null) {
@@ -114,12 +113,12 @@ public class MainActivity extends AppCompatActivity {
             Log.d("WIFI INFO", "IP: " + wifiInfo.getIpAddress());
             Log.d("WIFI INFO", "Network ID: " + wifiInfo.getNetworkId());
             Log.d("WIFI INFO", "Frequency: " + wifiInfo.getFrequency());
-          //  doInBack();
+            doInBack();
             //new NetworkTrafficTask(getApplicationContext()).execute();
         } else Log.d("WIFI INFO", "Wifi info is null!");
     }
 
-    class WifiReceiver extends  BroadcastReceiver {
+    class WifiReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
             ArrayList<String> conns = new ArrayList<>();
@@ -129,10 +128,40 @@ public class MainActivity extends AppCompatActivity {
             List<ScanResult> wifiList;
             wifiList = wifiManager.getScanResults();
             for (int i = 0; i < wifiList.size(); i++) {
-                conns.add(wifiList.get(i).SSID);
-                Log.d("WIFI", "connection found for SSID: " + wifiList.get(i).SSID + " BSSID: " + wifiList.get(i).BSSID);
+                String net_id = wifiList.get(i).SSID;
+
+
+                if (conns.contains(net_id)) {
+                    Log.d("WIFI", "Duplicate SSID found -----> " + net_id);
+                    if (wifiList.get(i).frequency > 3000) conns.add(net_id + " (5Ghz)");
+                    else conns.add(net_id + " (2.4Ghz)");
+                }
+                else {
+                    if (wifiList.get(i).frequency > 3000) conns.add(net_id + " (5Ghz)");
+                    else conns.add(net_id + " (2.4Ghz)");
+                }
+
+                //conns.add(wifiList.get(i).SSID);
+                /*Log.d("WIFI", "-----> SSID: " + wifiList.get(i).SSID + ", BSSID: " + wifiList.get(i).BSSID
+                        + ", Signal: " + wifiList.get(i).level + ", CH: " + wifiList.get(i).channelWidth
+                        + ", Freq: " + wifiList.get(i).frequency + ", Capabilities: " + wifiList.get(i).capabilities );*/
+
             }
-            Log.d("WIFI", "--------- No more connections found ----------");
+            /// Log.d("WIFI", "--------- No more connections found ----------");
+
+            Collections.sort(wifiList, new Comparator<ScanResult>() {
+                @Override
+                public int compare(ScanResult o1, ScanResult o2) {
+                    if (o1.level == o2.level) return 0;
+                    return o1.level < o2.level ? 1 : -1;
+                }
+            });
+            Log.d("WIFI", "---------- Top WiFi Connections ----------");
+            for (int k = 0; k < conns.size(); k++) {
+                Log.d("WIFI", "" + k + ". " + conns.get(k) + " ---> " + wifiList.get(k).level + " dBm");
+            }
+            Log.d("WIFI", "---------- End ----------");
+            unregisterReceiver(wifiReceiver);
         }
     }
 
@@ -142,10 +171,9 @@ public class MainActivity extends AppCompatActivity {
             public void run() {
                 wifiManager = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
 
-               // wifiReceiver = new WifiReceiver();
-                //registerReceiver(wifiReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
-                //wifiManager.startScan();
-                //doInBack();
+                wifiReceiver = new WifiReceiver();
+                registerReceiver(wifiReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
+                wifiManager.startScan();
             }
         }, 100);
     }
@@ -163,7 +191,8 @@ public class MainActivity extends AppCompatActivity {
 
                 StringBuilder res1 = new StringBuilder();
                 for (byte b : macBytes) {
-                    res1.append(String.format("%02X:", b));                }
+                    res1.append(String.format("%02X:", b));
+                }
 
                 if (res1.length() > 0) {
                     res1.deleteCharAt(res1.length() - 1);
@@ -247,13 +276,4 @@ public class MainActivity extends AppCompatActivity {
         }
 
     }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        if (wifiReceiver != null) {
-            unregisterReceiver(wifiReceiver);
-        }
-    }
-
 }

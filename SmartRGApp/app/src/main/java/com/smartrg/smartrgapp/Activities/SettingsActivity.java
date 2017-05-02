@@ -5,10 +5,8 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.net.wifi.WpsInfo;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.StrictMode;
-import android.support.annotation.NonNull;
 import android.support.customtabs.CustomTabsIntent;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -21,40 +19,13 @@ import android.widget.Toast;
 
 import com.smartrg.smartrgapp.R;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-import java.security.cert.X509Certificate;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
 
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft_17;
 import org.java_websocket.handshake.ServerHandshake;
 
-import javax.net.SocketFactory;
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
-
-import de.tavendo.autobahn.WebSocket;
-import de.tavendo.autobahn.WebSocketConnection;
-import de.tavendo.autobahn.WebSocketException;
-import io.socket.client.IO;
-import io.socket.client.Manager;
-import io.socket.client.Socket;
-import io.socket.emitter.Emitter;
-import io.socket.engineio.client.Transport;
 
 public class SettingsActivity extends AppCompatActivity {
 
@@ -62,13 +33,7 @@ public class SettingsActivity extends AppCompatActivity {
     int wpsSetup = 0;
     WifiManager.WpsCallback wpsCallback;
     WifiManager wifiManager;
-    WebView webView;
     private WebSocketClient mWebSocketClient;
-    Socket socket;
-    SSLContext sslContext;
-
-    private WebSocket mConnection = new WebSocketConnection();
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,6 +52,7 @@ public class SettingsActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayShowTitleEnabled(false);
 
         Button button = (Button) findViewById(R.id.wps_button);
+        Button router_button = (Button) findViewById(R.id.router_wps_button);
 
         wifiManager = (WifiManager)getApplicationContext().getSystemService(WIFI_SERVICE);
 
@@ -132,7 +98,6 @@ public class SettingsActivity extends AppCompatActivity {
             }
         };
 
-
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -140,7 +105,12 @@ public class SettingsActivity extends AppCompatActivity {
             }
         });
 
-       connectWebSocket();
+        router_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                connectWebSocket();
+            }
+        });
     }
 
     public void startWPS() {
@@ -189,7 +159,7 @@ public class SettingsActivity extends AppCompatActivity {
                 String hex = s.substring(46);
               //  Log.d(TAG, "hex: " + hex);
                 String hexActual = hex.substring(0, hex.length() - 3);
-              //   Log.d(TAG, "hex: " + hexActual);
+              //  Log.d(TAG, "hex: " + hexActual);
                 String message = "{\"jsonrpc\":\"2.0\",\"id\":28,\"method\":\"call\",\"params\":[\"" + hexActual+ "\",\"/juci/wireless\",\"station\",{\"mac\":\"E8:50:8B:ED:A7:FA\" }]}";
                 mWebSocketClient.send(message);
                 Log.d(TAG, "Sent: " + message);
