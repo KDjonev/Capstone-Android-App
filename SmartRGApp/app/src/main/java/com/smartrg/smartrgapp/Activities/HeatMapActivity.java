@@ -140,6 +140,11 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
     private final Handler handler = new Handler();
     StringBuilder stringBuilder = new StringBuilder();
 
+    Handler hand = new Handler();
+
+    boolean tcpDone = false, udpDone = false, scanDone = false;
+    int progress = 0;
+
 
 
     @Override
@@ -602,8 +607,9 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
         @Override
         protected void onPreExecute() {
             testingDialog = new ProgressDialog(HeatMapActivity.this);
-            testingDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-            testingDialog.setMessage("Test is in progress. . . ");
+            testingDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+            testingDialog.setTitle("Speed Test");
+            testingDialog.setMessage("Running TCP test. . . ");
             testingDialog.setCancelable(false);
             testingDialog.show();
             WifiInfo wifiInfo = wifiManager.getConnectionInfo();
@@ -619,8 +625,8 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
                 return null;
             }
             try {
+                updateProg();
                 registerWiFiSearchReceiver();
-
                 for (String c : which_command) {
                     String[] commands = c.split(" ");
                     List<String> commandList = new ArrayList<>(Arrays.asList(commands));
@@ -664,6 +670,7 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
                     retransmits = end.getJSONObject("sum_sent").getInt("retransmits");
                     downstream = downbits * Math.pow(10, -6);
                     upstream = upbits * Math.pow(10, -6);
+                    runOnUiThread(changeDialogTitle);
                 } catch (org.json.JSONException e) {
                     Log.d("JSONERROR", "Could not convert to JSONObject: " + output);
                 }
@@ -673,6 +680,8 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
                     JSONObject sum = json.getJSONObject("end").getJSONObject("sum");
                     jitter = sum.getDouble("jitter_ms");
                     lost_percent = sum.getDouble("lost_percent");
+                    udpDone = true;
+
                 } catch (org.json.JSONException e) {
                     Log.d("JSONERROR", "Could not convert to JSONObject" + output);
                 }
@@ -701,6 +710,29 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
 
             fancyShadingAlgorithm(rssi, downstream, upstream, jitter, lost_percent, retransmits);
         }
+    }
+
+    private Runnable changeDialogTitle = new Runnable() {
+        @Override
+        public void run() {
+            testingDialog.setMessage("Running UDP test . . .");
+        }
+    };
+
+    public void updateProg() {
+        hand.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (!udpDone || progress < 100) {
+                    progress = progress + 10;
+                    testingDialog.setProgress(progress);
+                    updateProg();
+                } else {
+                    udpDone = false;
+                    progress = 0;
+                }
+            }
+        }, 1000);
     }
 
     /**
@@ -810,15 +842,18 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
         Integer rssi;
         Integer rssiAvg = 0;
         ArrayList<Integer> rssiList;
+        int prog = 0;
 
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
             rssiList = new ArrayList<>();
             dialog = new ProgressDialog(HeatMapActivity.this);
-            dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-            dialog.setMessage("Collecting data points. . .");
+            dialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+            dialog.setTitle("Router Speed Test");
+            dialog.setMessage("Running tests on router . . .");
             dialog.setCancelable(false);
+            dialog.setProgress(0);
             dialog.show();
         }
 
@@ -830,11 +865,14 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
                     rssi = wifiInfo.getRssi();
                     rssiList.add(rssi);
                     Log.d("ROUTER_RSSI_INIT", "rssi: " + rssi);
+                    prog += 20;
+                    dialog.setProgress(prog);
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
+            prog = 0;
             return null;
         }
 
@@ -902,15 +940,7 @@ public class HeatMapActivity extends AppCompatActivity implements OnMapReadyCall
                     if (wifiList.get(i).frequency > 3000) conns.add(net_id + " (5Ghz)");
                     else conns.add(net_id + " (2.4Ghz)");
                 }
-
-                //conns.add(wifiList.get(i).SSID);
-                /*Log.d("WIFI", "-----> SSID: " + wifiList.get(i).SSID + ", BSSID: " + wifiList.get(i).BSSID
-                        + ", Signal: " + wifiList.get(i).level + ", CH: " + wifiList.get(i).channelWidth
-                        + ", Freq: " + wifiList.get(i).frequency + ", Capabilities: " + wifiList.get(i).capabilities );*/
-
             }
-            /// Log.d("WIFI", "--------- No more connections found ----------");
-
             Collections.sort(wifiList, new Comparator<ScanResult>() {
                 @Override
                 public int compare(ScanResult o1, ScanResult o2) {

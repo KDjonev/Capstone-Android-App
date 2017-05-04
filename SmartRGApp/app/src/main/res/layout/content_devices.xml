@@ -5,277 +5,32 @@
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
-    android:orientation="vertical"
-    android:weightSum="10"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context=".Activities.DevicesActivity">
 
-    <android.support.v7.widget.CardView
-        android:layout_width="match_parent"
-        android:layout_height="150dp"
-        app:cardCornerRadius="4dp"
-        app:cardElevation="2dp"
-        android:id="@+id/card_current_device"
-        >
-
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@drawable/current_router_background"
-            >
-
-            <ImageView
-                android:id="@+id/smart_router_image"
-                android:layout_width="100dp"
-                android:layout_height="match_parent"
-                android:src="@drawable/smart_router"
-                android:layout_marginLeft="8dp"
-                />
-
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_toRightOf="@id/smart_router_image"
-                android:layout_marginLeft="16dp"
-                android:layout_marginRight="16dp"
-                >
-
-                <TextView
-                    android:id="@+id/router_name"
-                    android:layout_marginTop="16dp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Device #1"
-                    android:textSize="18sp"
-                    android:fontFamily="sans-serif"
-                    android:textStyle="bold"
-                    android:textColor="@color/colorWhite"
-                    />
-
-                <ImageView
-                    android:id="@+id/name_divider"
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_below="@id/router_name"
-                    android:layout_marginBottom="5dp"
-                    android:layout_marginTop="5dp"
-                    android:src="@color/colorPrimaryDark" />
-
-                <TextView
-                    android:id="@+id/router_mac"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@id/name_divider"
-                    android:text="MAC: "
-                    android:textColor="@color/colorGrey"
-                    android:fontFamily="sans-serif"
-                    android:textSize="16sp"
-                    android:layout_marginTop="8dp"
-                    />
-
-                <TextView
-                    android:id="@+id/router_sn"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@id/router_mac"
-                    android:text="SN: 0000273"
-                    android:textColor="@color/colorGrey"
-                    android:fontFamily="sans-serif"
-                    android:textSize="16sp"
-                    android:layout_marginTop="16dp"
-                    />
-
-            </RelativeLayout>
-
-        </RelativeLayout>
-
-    </android.support.v7.widget.CardView>
-
     <TextView
-        android:id="@+id/text_current_device"
+        android:id="@+id/device_count"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:layout_below="@id/card_current_device"
-        android:text="Currently connected device"
+        android:text="Scanning for devices . . . "
+        android:layout_marginTop="4dp"
         android:textSize="14sp"
-        android:gravity="center"
-        android:fontFamily="sans-serif"
-        android:layout_marginTop="8dp"
-        android:textColor="@color/colorAccent"
+        android:textColor="@color/colorAccentDark"
         />
 
-    <android.support.v7.widget.CardView
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recycler_view"
         android:layout_width="match_parent"
-        android:layout_height="150dp"
-        app:cardCornerRadius="4dp"
-        app:cardElevation="2dp"
-        android:id="@+id/card_current_device2"
-        android:layout_below="@id/text_current_device"
-        android:layout_marginTop="8dp"
+        android:layout_height="match_parent"
+        android:scrollbars="vertical"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:layout_below="@id/device_count"
+        android:layout_marginTop="4dp"
         >
 
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@color/colorPrimary"
-            >
+    </android.support.v7.widget.RecyclerView>
 
-            <ImageView
-                android:id="@+id/smart_router_image2"
-                android:layout_width="100dp"
-                android:layout_height="match_parent"
-                android:src="@drawable/smart_router2"
-                android:layout_marginLeft="8dp"
-                android:padding="10dp"
-                />
-
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_toRightOf="@id/smart_router_image2"
-                android:layout_marginLeft="16dp"
-                android:layout_marginRight="16dp"
-
-                >
-
-                <TextView
-                    android:id="@+id/router_name2"
-                    android:layout_marginTop="16dp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Device #2"
-                    android:textSize="18sp"
-                    android:fontFamily="sans-serif"
-                    android:textStyle="bold"
-                    android:textColor="@color/colorWhite"
-                    />
-
-                <ImageView
-                    android:id="@+id/name_divider2"
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_below="@id/router_name2"
-                    android:layout_marginBottom="5dp"
-                    android:layout_marginTop="5dp"
-                    android:src="@color/colorPrimaryDark" />
-
-                <TextView
-                    android:id="@+id/router_mac2"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@id/name_divider2"
-                    android:text="MAC: e8:32:46:77:d3:89"
-                    android:textColor="@color/colorGrey"
-                    android:fontFamily="sans-serif"
-                    android:textSize="16sp"
-                    android:layout_marginTop="8dp"
-                    />
-
-                <TextView
-                    android:id="@+id/router_sn2"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@id/router_mac2"
-                    android:text="SN: 1234567"
-                    android:textColor="@color/colorGrey"
-                    android:fontFamily="sans-serif"
-                    android:textSize="16sp"
-                    android:layout_marginTop="16dp"
-                    />
-
-            </RelativeLayout>
-
-        </RelativeLayout>
-
-    </android.support.v7.widget.CardView>
-
-    <android.support.v7.widget.CardView
-        android:layout_width="match_parent"
-        android:layout_height="150dp"
-        app:cardCornerRadius="4dp"
-        app:cardElevation="2dp"
-        android:id="@+id/card_current_device3"
-        android:layout_below="@id/card_current_device2"
-        android:layout_marginTop="16dp"
-        >
-
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@color/colorPrimary"
-            >
-
-            <ImageView
-                android:id="@+id/smart_router_image3"
-                android:layout_width="100dp"
-                android:layout_height="match_parent"
-                android:src="@drawable/extender"
-                android:layout_marginLeft="8dp"
-                android:padding="5dp"
-                />
-
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_toRightOf="@id/smart_router_image3"
-                android:layout_marginLeft="16dp"
-                android:layout_marginRight="16dp"
-                >
-
-                <TextView
-                    android:id="@+id/router_name3"
-                    android:layout_marginTop="16dp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Extender #1"
-                    android:textSize="18sp"
-                    android:fontFamily="sans-serif"
-                    android:textStyle="bold"
-                    android:textColor="@color/colorWhite"
-                    />
-
-                <ImageView
-                    android:id="@+id/name_divider3"
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_below="@id/router_name3"
-                    android:layout_marginBottom="5dp"
-                    android:layout_marginTop="5dp"
-                    android:src="@color/colorPrimaryDark" />
-
-                <TextView
-                    android:id="@+id/router_mac3"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@id/name_divider3"
-                    android:text="MAC: 98:5e:5a:97:11:03"
-                    android:textColor="@color/colorGrey"
-                    android:fontFamily="sans-serif"
-                    android:textSize="16sp"
-                    android:layout_marginTop="8dp"
-                    />
-
-                <TextView
-                    android:id="@+id/router_sn3"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@id/router_mac3"
-                    android:text="SN: 9876564"
-                    android:textColor="@color/colorGrey"
-                    android:fontFamily="sans-serif"
-                    android:textSize="16sp"
-                    android:layout_marginTop="10dp"
-                    />
-
-            </RelativeLayout>
-
-        </RelativeLayout>
-
-    </android.support.v7.widget.CardView>
 
 </RelativeLayout>

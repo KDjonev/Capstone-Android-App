@@ -108,13 +108,13 @@ public class MainActivity extends AppCompatActivity {
         WifiInfo wifiInfo = wifiManager.getConnectionInfo();
         if (wifiInfo != null) {
             Log.d("WIFI INFO", "SSID: " + wifiInfo.getSSID());
-            Log.d("WIFI INFO", "MAC: " + getMacAddr());
             Log.d("WIFI INFO", "Hidden SSID: " + wifiInfo.getHiddenSSID());
-            Log.d("WIFI INFO", "IP: " + wifiInfo.getIpAddress());
+            Log.d("WIFI INFO", "Device MAC: " + getMacAddr());
+            Log.d("WIFI INFO", "Device IP: " + android.text.format.Formatter.formatIpAddress(wifiInfo.getIpAddress()));
             Log.d("WIFI INFO", "Network ID: " + wifiInfo.getNetworkId());
             Log.d("WIFI INFO", "Frequency: " + wifiInfo.getFrequency());
-            doInBack();
-            //new NetworkTrafficTask(getApplicationContext()).execute();
+            Log.d("WIFI INFO", "RSSI: " + wifiInfo.getRssi());
+            //doInBack();
         } else Log.d("WIFI INFO", "Wifi info is null!");
     }
 
@@ -203,77 +203,5 @@ public class MainActivity extends AppCompatActivity {
             //handle exception
         }
         return "";
-    }
-
-    class NetworkTrafficTask extends AsyncTask<Void, Void, Void> {
-
-        final String TAG = "NETWORK TASK";
-
-        WeakReference<Context> mContextRef;
-        int connectedDevices = 0;
-
-        public NetworkTrafficTask(Context context) {
-            mContextRef = new WeakReference<Context>(context);
-        }
-
-        @Override
-        protected Void doInBackground(Void... params) {
-            Log.d(TAG, "Let's sniff the network");
-            try {
-                Context context = mContextRef.get();
-
-                if (context != null) {
-                    ConnectivityManager cm = (ConnectivityManager) context.getSystemService(CONNECTIVITY_SERVICE);
-                    NetworkInfo activeNet = cm.getActiveNetworkInfo();
-                    WifiManager wm = (WifiManager) context.getSystemService(WIFI_SERVICE);
-
-                    WifiInfo connectionInfo = wm.getConnectionInfo();
-                    int ipAddress = wm.getDhcpInfo().gateway;
-                    String ipString = Formatter.formatIpAddress(ipAddress);
-
-                    Log.d(TAG, "active network: " + String.valueOf(activeNet));
-                    Log.d(TAG, "ipString: " + String.valueOf(ipString));
-
-                    String prefix = ipString.substring(0, ipString.lastIndexOf(".") + 1);
-                    Log.d(TAG, "prefix: " + prefix);
-
-                    for (int i =0; i < 255; i++) {
-                        String testIP = prefix + String.valueOf(i);
-                        // Log.d(TAG, "testIP: " + testIP);
-
-                        InetAddress address = InetAddress.getByName(testIP);
-                        String hostName = address.getCanonicalHostName();
-                        boolean reachable = address.isReachable(10);
-                        // Log.d("NAME", "name: " + hostName);
-
-                        if (reachable) {
-                             Log.d("NAME", "reachable name: " + hostName);
-                            StringBuilder sb = new StringBuilder();
-                            InetAddress ip = address;
-                            NetworkInterface network = NetworkInterface.getByInetAddress(ip);
-                            if (network == null) {
-                                String s = getMacAddr();
-                                Log.d(TAG, "network null, mac: " + s);
-                            }
-                            else {
-                                byte[] mac = network.getHardwareAddress();
-                                Log.d("NAME", "network is not null. Getting MAC...");
-                                for (int j = 0; j < mac.length; j++)
-                                    sb.append(String.format("%02X%s", mac[j], (i < mac.length - 1) ? "-" : ""));
-                            }
-                            Log.d(TAG, "Host: " + String.valueOf(hostName) + "(" + String.valueOf(testIP) + ") is reachable!");
-                            Log.d(TAG, "MAC: " + sb.toString());
-                            connectedDevices++;
-                        }
-                    }
-                    Log.d(TAG, "Scan complete! Number of connected devices: " + connectedDevices);
-                }
-            } catch (Throwable t) {
-                t.printStackTrace();
-                Log.d(TAG, "Well that's not good...");
-            }
-            return  null;
-        }
-
     }
 }

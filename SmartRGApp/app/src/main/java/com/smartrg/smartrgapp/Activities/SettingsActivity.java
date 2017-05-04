@@ -5,6 +5,7 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.net.wifi.WpsInfo;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.support.customtabs.CustomTabsIntent;
@@ -34,13 +35,14 @@ public class SettingsActivity extends AppCompatActivity {
     WifiManager.WpsCallback wpsCallback;
     WifiManager wifiManager;
     private WebSocketClient mWebSocketClient;
+    boolean loginSuccessful = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        StrictMode.setThreadPolicy(policy);
+        //StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        //StrictMode.setThreadPolicy(policy);
 
         setContentView(R.layout.activity_settings);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -60,17 +62,17 @@ public class SettingsActivity extends AppCompatActivity {
             @Override
             public void onStarted(String pin) {
                 Log.d("WPS", "onStarted()!");
-                if (pin != null) {
+                /*if (pin != null) {
                     Log.d("WPS", "String PIN not null!");
-                } else Log.d("WPS", "String PIN is null!");
+                } else Log.d("WPS", "String PIN is null!");*/
             }
 
             @Override
             public void onSucceeded() {
                 wpsComplete = true;
-                Log.d("WPS", "onSucceeded()!");
-                Toast.makeText(getApplicationContext(), "Connected to WiFi: " + wifiManager.getConnectionInfo().getSSID(), Toast.LENGTH_SHORT).show();
-                displayPortal();
+                Log.d("WPS", "---------- WPS Successful! ----------");
+                //Toast.makeText(getApplicationContext(), "Connected to WiFi: " + wifiManager.getConnectionInfo().getSSID(), Toast.LENGTH_SHORT).show();
+                //displayPortal();
             }
 
             @Override
@@ -101,17 +103,55 @@ public class SettingsActivity extends AppCompatActivity {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startWPS();
+                new wpsTask().execute();
             }
         });
 
         router_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                connectWebSocket();
+                new socketTask().execute();
             }
         });
     }
+
+
+    public class wpsTask extends AsyncTask<Void, Void, Void> {
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            startWPS();
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+        }
+    }
+
+    public class socketTask extends AsyncTask<Void, Void, Void> {
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            connectWebSocket();
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+        }
+    }
+
 
     public void startWPS() {
         wpsComplete = false;
@@ -156,18 +196,29 @@ public class SettingsActivity extends AppCompatActivity {
             @Override
             public void onMessage(String s) {
                 Log.d(TAG, "received message: " + s);
-                String hex = s.substring(46);
-              //  Log.d(TAG, "hex: " + hex);
-                String hexActual = hex.substring(0, hex.length() - 3);
-              //  Log.d(TAG, "hex: " + hexActual);
-                String message = "{\"jsonrpc\":\"2.0\",\"id\":28,\"method\":\"call\",\"params\":[\"" + hexActual+ "\",\"/juci/wireless\",\"station\",{\"mac\":\"E8:50:8B:ED:A7:FA\" }]}";
-                mWebSocketClient.send(message);
-                Log.d(TAG, "Sent: " + message);
+                if (!loginSuccessful) {
+                    String hex = s.substring(46);
+                    String hexActual = hex.substring(0, hex.length() - 3);
+                    //String message = "{\"jsonrpc\":\"2.0\",\"id\":28,\"method\":\"call\",\"params\":[\"" + hexActual+ "\",\"/juci/wireless\",\"station\",{\"mac\":\"E8:50:8B:ED:A7:FA\" }]}";
+                    String message = "{\"jsonrpc\":\"2.0\",\"id\":28,\"method\":\"call\",\"params\":[\"" + hexActual+ "\",\"/juci/wps\",\"press_wps\",{}]}";
+                    mWebSocketClient.send(message);
+                    Log.d(TAG, "Sent: " + message);
+                    loginSuccessful = true;
+                } else {
+                    Log.d(TAG, "Nothing more to do, closing socket...");
+                    loginSuccessful = false;
+                    mWebSocketClient.close();
+                }
             }
 
             @Override
             public void onClose(int i, String s, boolean b) {
-                Log.d(TAG, "Closed with exit code " + i + " additional info: " + s);
+                loginSuccessful = false;
+                if (i == 1000) {
+                    Log.d(TAG, "Graceful close of socket!");
+                } else {
+                    Log.d(TAG, "Closed with exit code " + i + " additional info: " + s);
+                }
             }
 
             @Override
