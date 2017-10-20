@@ -13,4 +13,5 @@
     <string name="title_activity_settings">SettingsActivity</string>
     <string name="title_activity_speed_test_settings">SpeedTestSettingsActivity</string>
     <string name="title_activity_heat_map_load">HeatMapLoadActivity</string>
+    <string name="title_activity_web_view">webView</string>
 </resources>

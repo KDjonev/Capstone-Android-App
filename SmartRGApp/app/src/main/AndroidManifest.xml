@@ -9,8 +9,8 @@
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     <!-- Needed only if your app targets Android 5.0 (API level 21) or higher. -->
     <uses-feature android:name="android.hardware.location.gps" />
-    <uses-permission android:name="android.permission.INTERNET"></uses-permission>
 
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:allowBackup="true"
@@ -27,7 +27,7 @@
             You need a different API key for each encryption key, including the release key that is used to
             sign the APK for publishing.
             You can define the keys for the debug and release targets in src/debug/ and src/release/.
-       -->
+        -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_key" />
@@ -65,9 +65,7 @@
             android:name=".Activities.HeatMapActivity"
             android:label=""
             android:screenOrientation="portrait"
-            android:theme="@style/AppTheme.NoActionBar">
-
-        </activity>
+            android:theme="@style/AppTheme.NoActionBar"></activity>
         <activity
             android:name=".Activities.SpeedTestActivity"
             android:label="Speed Test"
@@ -85,8 +83,8 @@
         <activity
             android:name=".Activities.SettingsActivity"
             android:label="@string/title_activity_settings"
-            android:screenOrientation="portrait"
             android:parentActivityName=".Activities.MainActivity"
+            android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
@@ -95,8 +93,8 @@
         <activity
             android:name=".Activities.SpeedTestSettingsActivity"
             android:label=""
-            android:screenOrientation="portrait"
             android:parentActivityName=".Activities.SpeedTestActivity"
+            android:screenOrientation="portrait"
             android:theme="@style/AppTheme.Preferences">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
@@ -105,8 +103,8 @@
         <activity
             android:name=".Activities.HeatMapLoadActivity"
             android:label=""
-            android:screenOrientation="portrait"
             android:parentActivityName=".Activities.HeatMapSelectActivity"
+            android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
@@ -115,14 +113,17 @@
         <activity
             android:name=".Activities.HeatMapSettingsActivity"
             android:label=""
-            android:screenOrientation="portrait"
             android:parentActivityName=".Activities.HeatMapActivity"
+            android:screenOrientation="portrait"
             android:theme="@style/AppTheme.Preferences">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.smartrg.smartrgapp.Activities.HeatMapActivity" />
         </activity>
-
+        <activity
+            android:name=".Activities.webView"
+            android:label="@string/title_activity_web_view"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
 </manifest>
