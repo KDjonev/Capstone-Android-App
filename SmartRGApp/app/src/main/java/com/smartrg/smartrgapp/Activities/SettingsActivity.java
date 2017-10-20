@@ -1,5 +1,6 @@
 package com.smartrg.smartrgapp.Activities;
 
+import android.content.Intent;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -111,6 +112,9 @@ public class SettingsActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 new socketTask().execute();
+                //Redirect to new activity page
+                Intent webViewRouterConfig = new Intent(SettingsActivity.this, webView.class);
+                startActivity(webViewRouterConfig);
             }
         });
     }
