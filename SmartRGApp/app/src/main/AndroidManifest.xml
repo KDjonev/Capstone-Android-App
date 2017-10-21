@@ -65,7 +65,7 @@
             android:name=".Activities.HeatMapActivity"
             android:label=""
             android:screenOrientation="portrait"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".Activities.SpeedTestActivity"
             android:label="Speed Test"
@@ -123,7 +123,16 @@
         <activity
             android:name=".Activities.webView"
             android:label="@string/title_activity_web_view"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".Activities.VideoStreamAnalyzerActivity"
+            android:label="@string/title_activity_video_stream_analyzer"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:parentActivityName=".Activities.MainActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.smartrg.smartrgapp.Activities.MainActivity" />
+        </activity>
     </application>
 
 </manifest>

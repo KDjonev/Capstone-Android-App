@@ -10,4 +10,6 @@
     <color name="colorAccentDark">#009B40</color>
     <color name="colorGrey">#888888</color>
 
+    <color name="black_overlay">#66000000</color>
+
 </resources>

@@ -2,7 +2,7 @@
 // The icons are png pictures in the res/drawable/ folder.
 
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-
+/*
 public void placeMarker(LatLng latLng, Icon i)
 {
     int deviceW = getResources().getDisplayMetrics().widthPixels;
@@ -61,3 +61,4 @@ private Bitmap resizeBitmap(int id, int w, int h)
     Bitmap resized = Bitmap.createScaledBitmap(bitMap, w, h, true);
     return resized;
 }
+*/

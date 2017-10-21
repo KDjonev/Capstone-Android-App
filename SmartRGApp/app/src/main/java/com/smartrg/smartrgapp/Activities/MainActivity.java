@@ -78,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
         card_devices.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, DevicesActivity.class);
+                Intent intent = new Intent(MainActivity.this, VideoStreamAnalyzerActivity.class);
                 startActivity(intent);
 
             }
