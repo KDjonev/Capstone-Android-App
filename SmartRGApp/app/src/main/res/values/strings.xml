@@ -14,4 +14,8 @@
     <string name="title_activity_speed_test_settings">SpeedTestSettingsActivity</string>
     <string name="title_activity_heat_map_load">HeatMapLoadActivity</string>
     <string name="title_activity_web_view">webView</string>
+
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
+    <string name="title_activity_video_stream_analyzer">Video Stream Analyzer</string>
 </resources>
