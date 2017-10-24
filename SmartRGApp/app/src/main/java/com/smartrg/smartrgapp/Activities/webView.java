@@ -1,8 +1,14 @@
 package com.smartrg.smartrgapp.Activities;
 
+import android.content.Intent;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -23,6 +29,12 @@ public class webView extends AppCompatActivity {
         setContentView(R.layout.activity_web_view);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        //Display Back Arrow
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        final Drawable upArrow = ContextCompat.getDrawable(this, R.drawable.abc_ic_ab_back_material);
+        upArrow.setColorFilter(getResources().getColor(R.color.colorWhite), PorterDuff.Mode.SRC_ATOP);
+        getSupportActionBar().setHomeAsUpIndicator(upArrow);
+        getSupportActionBar().setDisplayShowTitleEnabled(false);
 
         //Init mwebView with WebView Window declared in activity_web_view
         mwebView = (WebView) findViewById(R.id.myWebView);
@@ -57,6 +69,24 @@ public class webView extends AppCompatActivity {
         mwebView.loadUrl(urlToLoad);
 
 
+    }
+
+    // Inflate the menu;
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.devices, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        //Create a new intent to take you back to main
+        //Activity page
+        Intent goHome = new Intent(getApplicationContext(), MainActivity.class);
+        //Execute the goHome intent
+        startActivityForResult(goHome, 0);
+        return true;
     }
 
 }
