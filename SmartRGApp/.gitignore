@@ -7,3 +7,5 @@
 /build
 /captures
 .externalNativeBuild
+misc.xml
+modules.xml
