@@ -50,7 +50,7 @@
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.smartrg.smartrgapp.Activities.MainActivity" />
+                android:value="com.smartrg.smartrgapp.Activities.HomeSettingsActivity" />
         </activity>
         <activity
             android:name=".Activities.HeatMapSelectActivity"
@@ -127,8 +127,17 @@
         <activity
             android:name=".Activities.VideoStreamAnalyzerActivity"
             android:label="@string/title_activity_video_stream_analyzer"
-            android:theme="@style/AppTheme.NoActionBar"
-            android:parentActivityName=".Activities.MainActivity">
+            android:parentActivityName=".Activities.MainActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.smartrg.smartrgapp.Activities.MainActivity" />
+        </activity>
+        <activity
+            android:name=".Activities.HomeSettingsActivity"
+            android:label="@string/title_activity_home_settings"
+            android:parentActivityName=".Activities.MainActivity"
+            android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.smartrg.smartrgapp.Activities.MainActivity" />
