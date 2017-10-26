@@ -21,7 +21,7 @@ public class webView extends AppCompatActivity {
     //initializing WebView
     WebView mwebView;
     //Assign the url to load
-    String urlToLoad = "https://www.google.com/";
+    String urlToLoad = "http://192.168.1.1/#!/login";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
