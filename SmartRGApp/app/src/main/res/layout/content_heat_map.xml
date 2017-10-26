@@ -8,6 +8,15 @@
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context=".Activities.HeatMapActivity">
 
+    <!--
+    Adds a MapView to the heat map activity
+    Added on 10/25/2017
+    -->
+    <com.google.android.gms.maps.MapView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/map"
+        />
 
     <fragment
         xmlns:android="http://schemas.android.com/apk/res/android"
