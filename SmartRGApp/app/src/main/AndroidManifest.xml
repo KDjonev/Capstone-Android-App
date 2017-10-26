@@ -3,6 +3,8 @@
     package="com.smartrg.smartrgapp">
 
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION_LOCATION" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
@@ -30,7 +32,7 @@
         -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="@string/google_maps_key" />
+            android:value="AIzaSyBt4d7R7QRcMnhVPH7Qh87RRQpfwXf9_NA"/>
 
         <activity
             android:name=".Activities.MainActivity"
@@ -143,5 +145,10 @@
                 android:value="com.smartrg.smartrgapp.Activities.MainActivity" />
         </activity>
     </application>
+
+    <uses-feature
+        android:glEsVersion="0x00020000"
+        android:required="true"
+        />
 
 </manifest>
