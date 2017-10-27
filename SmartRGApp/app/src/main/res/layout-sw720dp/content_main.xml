@@ -152,7 +152,7 @@
                     android:layout_height="150dp"
                     android:layout_marginTop="70dp"
                     android:layout_centerHorizontal="true"
-                    android:src="@drawable/wifi"
+                    android:src="@drawable/vsa_graph"
                     />
 
                 <TextView
@@ -162,7 +162,7 @@
                     android:layout_marginTop="60dp"
                     android:textColor="@android:color/white"
                     android:layout_centerHorizontal="true"
-                    android:text="Devices"
+                    android:text="VSA Graphs"
                     android:textSize="28sp"
                     android:fontFamily="sans-serif-thin"
                     android:textStyle="bold"
@@ -198,7 +198,7 @@
                     android:layout_height="150dp"
                     android:layout_marginTop="70dp"
                     android:layout_centerHorizontal="true"
-                    android:src="@drawable/settings"
+                    android:src="@drawable/gui_portal"
                     />
 
                 <TextView
@@ -208,7 +208,7 @@
                     android:layout_marginTop="60dp"
                     android:textColor="@android:color/white"
                     android:layout_centerHorizontal="true"
-                    android:text="Settings"
+                    android:text="GUI Portal"
                     android:textSize="28sp"
                     android:fontFamily="sans-serif-thin"
                     android:textStyle="bold"
