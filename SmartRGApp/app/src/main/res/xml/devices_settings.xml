@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <PreferenceCategory
+        android:title="Devices Options"
+        android:key="test_category">
+
+        <Preference
+            android:key="duration"
+            android:title="View All Devices"
+            android:summary="Select to view devices">
+            <intent
+                android:action="android.intent.action.VIEW"
+                android:targetPackage="com.smartrg.smartrgapp"
+                android:targetClass="com.smartrg.smartrgapp.Activities.DevicesActivity"
+                />
+        </Preference>
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

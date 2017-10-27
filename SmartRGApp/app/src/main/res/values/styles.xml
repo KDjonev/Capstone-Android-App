@@ -40,6 +40,8 @@
         <item name="android:textColorSecondary">@color/colorGrey</item>
         <item name="android:dialogTheme">@style/AppTheme.Preferences.Dialog</item>
         <item name="android:alertDialogTheme">@style/AppTheme.Preferences.Dialog</item>
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
     </style>
 
 

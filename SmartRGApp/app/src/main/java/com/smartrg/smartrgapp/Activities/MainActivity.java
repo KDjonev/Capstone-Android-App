@@ -27,6 +27,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.RelativeLayout;
 
+import com.smartrg.smartrgapp.Classes.HomeSettingsPreferenceActivity;
 import com.smartrg.smartrgapp.R;
 
 import java.lang.ref.WeakReference;
@@ -135,8 +136,8 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-            Intent intent = new Intent(MainActivity.this, HomeSettingsActivity.class);
-            startActivity(intent);
+            Intent intent = new Intent(MainActivity.this, HomeSettingsPreferenceActivity.class);
+            startActivityForResult(intent, 1);
             return true;
         }
         return super.onOptionsItemSelected(item);
