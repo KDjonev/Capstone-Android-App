@@ -1,24 +1,23 @@
-package com.smartrg.smartrgapp.Activities;
+package com.smartrg.smartrgapp.Classes;
 
-import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
+import android.preference.PreferenceFragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
-import android.view.View;
-import android.widget.Button;
 
 import com.smartrg.smartrgapp.R;
 
-public class HomeSettingsActivity extends AppCompatActivity {
+import java.util.List;
 
+/**
+ * Created by stefanagloginic on 10/26/17.
+ */
+
+public class HomeSettingsPreferenceActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -32,16 +31,16 @@ public class HomeSettingsActivity extends AppCompatActivity {
         upArrow.setColorFilter(Color.WHITE, PorterDuff.Mode.SRC_ATOP);
         getSupportActionBar().setHomeAsUpIndicator(upArrow);
 
-        Button devices_button = (Button) findViewById(R.id.devices_button);
-
-        devices_button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(HomeSettingsActivity.this, DevicesActivity.class);
-                startActivity(intent);
-            }
-        });
-
+        // Display the fragment as the main content.
+        getFragmentManager().beginTransaction().replace(R.id.frame_content,
+                new devicesPreferencesFragment()).commit();
     }
 
+    public static class devicesPreferencesFragment extends PreferenceFragment {
+        @Override
+        public void onCreate(Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+            addPreferencesFromResource(R.xml.devices_settings);
+        }
+    }
 }
