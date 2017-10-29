@@ -5,6 +5,7 @@ import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.Keep;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
@@ -12,6 +13,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
+import android.widget.TextView;
 
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.GridLabelRenderer;
@@ -46,6 +48,8 @@ public class VideoStreamAnalyzerActivity extends AppCompatActivity {
 
     private final Handler handler = new Handler();
     private Runnable timer;
+
+    private TextView jniTV;
 
 
     @Override
@@ -139,11 +143,17 @@ public class VideoStreamAnalyzerActivity extends AppCompatActivity {
         viewport.setMaxY(maxY);
 
 
+        /*Trivial textview used for example to show jni is working*/
+        jniTV = (TextView) findViewById(R.id.jnitv);
+        jniTV.setText(getVSAString());
+
     }
 
     @Override
     public void onResume() {
         super.onResume();
+
+        startVSA();
 
         timer = new Runnable() {
             @Override
@@ -166,7 +176,38 @@ public class VideoStreamAnalyzerActivity extends AppCompatActivity {
     @Override
     public void onPause() {
         handler.removeCallbacks(timer);
+        stopVSA();
         super.onPause();
     }
+
+    /*
+     * A function calling from JNI to update graphs
+     *      @Keep is used to make sure that during build time this code is not removed because
+     *      it may think it is not used, but NDK uses reflection to access methods and classes.
+     *
+     *      Note: This function still sits on a separate thread, reference file
+     *      app/src/main/jni/VSA-jni.c
+     */
+    @Keep
+    private void updateGraphs(String data) {
+        final String innerData = data;
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                VideoStreamAnalyzerActivity.this.jniTV.setText(innerData);
+            }
+        });
+    }
+
+    //load shared c library
+    static {
+        System.loadLibrary("VSA-jni");
+    }
+
+    //specify native functions that can be called
+    public native String getVSAString();
+    public native void startVSA();
+    public native void stopVSA();
 
 }
