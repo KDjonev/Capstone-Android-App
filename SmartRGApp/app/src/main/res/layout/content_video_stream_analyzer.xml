@@ -36,6 +36,12 @@
                 app:layout_constraintLeft_toLeftOf="parent"
                 tools:layout_editor_absoluteY="0dp" />
 
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="20dp"
+                android:textColor="@color/colorWhite"
+                android:id="@+id/jnitv"/>
+
         </android.support.v7.widget.LinearLayoutCompat>
 
     </ScrollView>

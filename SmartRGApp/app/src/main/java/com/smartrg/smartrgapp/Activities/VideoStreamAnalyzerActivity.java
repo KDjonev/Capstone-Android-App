@@ -12,6 +12,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
+import android.widget.TextView;
 
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.GridLabelRenderer;
@@ -139,6 +140,9 @@ public class VideoStreamAnalyzerActivity extends AppCompatActivity {
         viewport.setMaxY(maxY);
 
 
+        /*Trivial textview used for example to show jni is working*/
+        ((TextView) findViewById(R.id.jnitv)).setText(getVSAString());
+
     }
 
     @Override
@@ -168,5 +172,14 @@ public class VideoStreamAnalyzerActivity extends AppCompatActivity {
         handler.removeCallbacks(timer);
         super.onPause();
     }
+
+    //load shared c library
+    static {
+        System.loadLibrary("VSA-jni");
+    }
+
+    public native String getVSAString();
+
+
 
 }
